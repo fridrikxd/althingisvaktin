@@ -137,8 +137,6 @@ const PARTY_ALIASES = {
     "gudrun hafsteinsdottir",
     "gudrunu hafsteinsdottur",
     "gudrunar hafsteinsdottur",
-    "gudrun",
-    "hafsteinsdottir",
     "landsfundur",
     "landsfund",
     "landsfundi",
@@ -158,8 +156,6 @@ const PARTY_ALIASES = {
     "kristrun frostadottir",
     "kristrunu frostadottur",
     "kristrunar frostadottur",
-    "kristrun",
-    "frostadottir",
     "landsfundur",
     "landsfund",
     "landsfundi",
@@ -741,7 +737,7 @@ export default {
       const feed = retainRecentFeed(
         dedupeFeed([...newsFeed, ...socialFeed]).sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt)),
         14
-      ).slice(0, 240);
+      ).slice(0, 1200);
       const rssSources = NEWS_FEEDS.map((source, index) => ({
         name: source.name,
         status: newsResults[index]?.status === "fulfilled" ? "Tengt" : "Villa",
