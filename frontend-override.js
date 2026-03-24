@@ -1,4 +1,23 @@
 (function () {
+  function buildLeaderVoices(benchmarkParties, benchmarkFeed) {
+    return benchmarkParties
+      .map((party) => {
+        const benchmark = benchmarkForLeader(party, benchmarkFeed);
+        if (!benchmark) return null;
+        return {
+          name: benchmark.leaderName,
+          party,
+          mentions: benchmark.mentions,
+          shareOfVoice: benchmark.shareOfVoice,
+          growth: benchmark.growth,
+          topSource: benchmark.topSources[0]?.label || "Engin heimild"
+        };
+      })
+      .filter(Boolean)
+      .sort((a, b) => b.mentions - a.mentions)
+      .slice(0, 4);
+  }
+
   function renderFeedCards(feed, visibleFeed, selected) {
     if (!feed.length) {
       return '<div class="rounded-[24px] border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">Engin atriði passa við núverandi síur.</div>';
@@ -258,7 +277,7 @@
     const leaderBenchmarkB = compareLeaderB ? benchmarkForLeader(compareLeaderB, benchmarkFeed) : null;
     const curatedPoliticalFeed = editorialPoliticalFeed(benchmarkFeed);
     const summary = weekSummary(curatedPoliticalFeed);
-    const voices = voicesInFocus(curatedPoliticalFeed);
+    const voices = buildLeaderVoices(benchmarkParties, benchmarkFeed);
     const topics = [...new Set(state.dashboard.feed.map((item) => item.topic))].sort();
     const heroStatus = state.loading ? "Sæki lifandi gögn..." : state.usingDemoData ? "Sýni gagnvirka demo-strauma" : "Lifandi vöktun virk";
 
