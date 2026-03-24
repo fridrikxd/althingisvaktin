@@ -268,7 +268,9 @@
     const feed = filteredFeed();
     const effectiveFeed = currentPage === "leidtogar" && state.selectedMember === "all" && state.selectedParty === "all"
       ? feed.filter((item) => itemMatchesTrackedPerson(item))
-      : feed;
+      : currentPage === "flokkar" && state.selectedParty === "all"
+        ? feed.filter((item) => canonicalParty(item.party || "") !== "Oflokkat")
+        : feed;
     const visibleFeed = effectiveFeed.slice(0, state.visibleFeedCount);
     const selected = selectedMention(effectiveFeed);
     const sources = [...new Set([...state.dashboard.feed.map((item) => item.source), "VB", "BBC World", "POLITICO Europe"])].sort();
