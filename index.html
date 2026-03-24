@@ -1205,50 +1205,9 @@
             </div>
           </section>
           <section class="grid gap-6 md:grid-cols-2 xl:grid-cols-5">${state.dashboard.stats.map((stat, index) => renderMetricCard(stat, index % 2 === 0 ? "bg-[#dceaff] text-[#1446dc]" : "bg-[#e8f2ff] text-[#00258c]")).join("")}</section>
-          <section class="grid gap-8 xl:grid-cols-[0.95fr_1.05fr]">
-            ${renderCollectionOverview(curatedPoliticalFeed)}
+          <section class="grid gap-8 xl:grid-cols-[1.02fr_0.98fr]">
             ${renderLatestAnalysis(curatedPoliticalFeed, selected)}
-          </section>
-          <section class="rounded-[32px] border border-[#d7e3fb] bg-white p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]">
-            <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-              <div>
-                <div class="text-xs uppercase tracking-[0.24em] text-[#5b7397]">Compare / Benchmark</div>
-                <h2 class="mt-1 text-2xl font-semibold text-[#081c40]">Samanburður flokka hlið við hlið</h2>
-                <p class="mt-2 max-w-3xl text-sm text-[#60779a]">Ber saman share of voice, sentiment, growth, efstu málefni og helstu heimildir fyrir tvo flokka.</p>
-              </div>
-              <div class="grid gap-3 sm:grid-cols-2">
-                <select id="comparePartyA" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm">${benchmarkParties.map((party) => `<option value="${escapeHtml(party)}" ${comparePartyA === party ? "selected" : ""}>${escapeHtml(displayLabel(party))}</option>`).join("")}</select>
-                <select id="comparePartyB" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm">${benchmarkParties.map((party) => `<option value="${escapeHtml(party)}" ${comparePartyB === party ? "selected" : ""}>${escapeHtml(displayLabel(party))}</option>`).join("")}</select>
-              </div>
-            </div>
-            <div class="mt-6 grid gap-6 xl:grid-cols-2">
-              ${benchmarkA ? renderBenchmarkCard(benchmarkA, "bg-[#dceaff] text-[#1446dc]") : `<div class="text-sm text-slate-500">Vantar samanburðargögn.</div>`}
-              ${benchmarkB ? renderBenchmarkCard(benchmarkB, "bg-[#e8f2ff] text-[#00258c]") : `<div class="text-sm text-slate-500">Vantar samanburðargögn.</div>`}
-            </div>
-          </section>
-          <section class="rounded-[32px] border border-[#d7e3fb] bg-white p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]">
-            <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
-              <div>
-                <div class="text-xs uppercase tracking-[0.24em] text-[#5b7397]">Leader Benchmark</div>
-                <h2 class="mt-1 text-2xl font-semibold text-[#081c40]">Samanburður formanna og umræðu</h2>
-                <p class="mt-2 max-w-3xl text-sm text-[#60779a]">Ber saman umræðu um formenn flokkanna sjálfa út frá nafnaumfjöllun í fréttum og straumum.</p>
-              </div>
-              <div class="grid gap-3 sm:grid-cols-2">
-                <select id="compareLeaderA" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm">${benchmarkParties.map((party) => `<option value="${escapeHtml(party)}" ${compareLeaderA === party ? "selected" : ""}>${escapeHtml(displayLabel(PARTY_LEADERS[party]?.name || party))}</option>`).join("")}</select>
-                <select id="compareLeaderB" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm">${benchmarkParties.map((party) => `<option value="${escapeHtml(party)}" ${compareLeaderB === party ? "selected" : ""}>${escapeHtml(displayLabel(PARTY_LEADERS[party]?.name || party))}</option>`).join("")}</select>
-              </div>
-            </div>
-            <div class="mt-6 grid gap-6 xl:grid-cols-2">
-              ${leaderBenchmarkA ? renderLeaderBenchmarkCard(leaderBenchmarkA, "bg-[#dceaff] text-[#1446dc]") : `<div class="text-sm text-slate-500">Vantar leiðtogagögn.</div>`}
-              ${leaderBenchmarkB ? renderLeaderBenchmarkCard(leaderBenchmarkB, "bg-[#e8f2ff] text-[#00258c]") : `<div class="text-sm text-slate-500">Vantar leiðtogagögn.</div>`}
-            </div>
-          </section>
-          <section class="grid gap-8 xl:grid-cols-[1.05fr_0.95fr]">
             ${renderWeekSummary(summary)}
-            ${renderVoicesInFocus(voices)}
-          </section>
-          <section>
-            ${renderMethodologyCard()}
           </section>
       `;
       app.innerHTML += `
@@ -1268,29 +1227,6 @@
               <div class="rounded-[32px] border border-[#d7e3fb] bg-white p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]"><div class="text-xs uppercase tracking-[0.24em] text-[#5b7397]">Volume over time</div><h2 class="mt-1 text-2xl font-semibold text-[#081c40]">Tímalína umræðu</h2><div class="mt-6">${renderTimeline(feed)}</div></div>
               <div class="rounded-[32px] border border-[#d7e3fb] bg-white p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]"><div class="text-xs uppercase tracking-[0.24em] text-[#5b7397]">Sentiment mix</div><h2 class="mt-1 text-2xl font-semibold text-[#081c40]">Audience mood</h2><div class="mt-6">${renderSentimentDonut(state.dashboard.sentimentTotals)}</div></div>
               <div class="rounded-[32px] border border-[#d7e3fb] bg-white p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]"><div class="text-xs uppercase tracking-[0.24em] text-[#5b7397]">Alerts</div><h2 class="mt-1 text-2xl font-semibold text-[#081c40]">Merki sem vert er að fylgjast með</h2><div class="mt-4 space-y-3">${state.dashboard.alerts.length ? state.dashboard.alerts.map((alert) => `<div class="rounded-2xl border border-[#d7e3fb] bg-white p-4"><div class="flex items-center justify-between gap-3"><div class="font-semibold text-[#081c40]">${escapeHtml(alert.label)}</div><div class="rounded-full bg-[#dceaff] px-3 py-1 text-xs font-semibold text-[#1446dc]">${escapeHtml(alert.severity)}</div></div><div class="mt-2 text-sm text-[#60779a]">${escapeHtml(displayAlertChannel(alert.channel))}</div></div>`).join("") : `<div class="text-sm text-[#60779a]">Engar viðvaranir enn.</div>`}</div></div>
-            </div>
-          </section>
-          <section class="grid gap-8 lg:grid-cols-3">
-            <div class="rounded-[32px] border border-[#d7e3fb] bg-white p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]"><div class="text-xs uppercase tracking-[0.24em] text-[#5b7397]">Competitive share</div><h2 class="mt-1 text-2xl font-semibold text-[#081c40]">Flokkar í umræðu</h2><div class="mt-5 space-y-4">${renderBarChart(state.dashboard.parties.map((item) => ({ label: displayLabel(item.name), value: item.mentions })), "bg-gradient-to-r from-[#00258c] to-[#1446dc]")}</div></div>
-            <div class="rounded-[32px] border border-[#d7e3fb] bg-white p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]"><div class="text-xs uppercase tracking-[0.24em] text-[#5b7397]">Topic share</div><h2 class="mt-1 text-2xl font-semibold text-[#081c40]">Trending topics</h2><div class="mt-5 space-y-4">${renderBarChart(state.dashboard.topics.map((item) => ({ label: displayLabel(item.label), value: item.value })), "bg-gradient-to-r from-[#3a8dde] to-[#1446dc]")}</div></div>
-            <div class="rounded-[32px] border border-[#d7e3fb] bg-white p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]"><div class="text-xs uppercase tracking-[0.24em] text-[#5b7397]">Channel mix</div><h2 class="mt-1 text-2xl font-semibold text-[#081c40]">Source health</h2><div class="mt-5 space-y-4">${renderBarChart(state.dashboard.channelBreakdown, "bg-gradient-to-r from-[#081c40] to-[#3a8dde]")}</div></div>
-          </section>
-          <section class="grid gap-8 xl:grid-cols-[1.02fr_0.98fr]">
-            <div class="rounded-[32px] border border-[#d7e3fb] bg-white p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]">
-              <div class="flex items-center justify-between gap-3"><div><div class="text-xs uppercase tracking-[0.24em] text-[#5b7397]">Polling intelligence</div><h2 class="mt-1 text-2xl font-semibold text-[#081c40]">Maskína og aðrar kannanir</h2></div><div class="rounded-full bg-[#dceaff] px-3 py-1 text-xs font-semibold text-[#1446dc]">${escapeHtml(String(state.dashboard.polls.length))} heimildir</div></div>
-              <div class="mt-6 space-y-4">${renderPollList(state.dashboard.polls || [])}</div>
-            </div>
-            <div class="space-y-8">
-              <div class="rounded-[32px] border border-[#d7e3fb] bg-white p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]">
-                <div class="text-xs uppercase tracking-[0.24em] text-[#5b7397]">Poll average</div>
-                <h2 class="mt-1 text-2xl font-semibold text-[#081c40]">Meðaltal fylgis</h2>
-                <div class="mt-5 space-y-4">${renderBarChart((state.dashboard.pollAverage || []).map((row) => ({ label: displayLabel(row.party), value: row.percentage })), "bg-gradient-to-r from-indigo-500 to-sky-400")}</div>
-              </div>
-              <div class="rounded-[32px] border border-[#d7e3fb] bg-white p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]">
-                <div class="text-xs uppercase tracking-[0.24em] text-[#5b7397]">Seat projection</div>
-                <h2 class="mt-1 text-2xl font-semibold text-[#081c40]">Þingsætaskipting</h2>
-                <div class="mt-5 space-y-4">${renderSeatProjection(state.dashboard.seatProjection || [])}</div>
-              </div>
             </div>
           </section>
         </div>`;
@@ -1328,6 +1264,19 @@
       const feedDescription = currentPage === "flokkar"
         ? "Skoðaðu pólitíska umræðu milli flokka, fylgstu með efstu málefnum og notaðu síur til að þrengja strauminn niður."
         : "Fylgstu með umfjöllun um formenn og þingmenn, síaðu eftir nöfnum og sjáðu hvaða heimildir og málefni gefa mestan sýnileika.";
+      const filterFields = currentPage === "flokkar"
+        ? `
+          <select id="partySelect" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm"><option value="all">Allir flokkar</option>${parties.map((party) => `<option value="${escapeHtml(party)}" ${state.selectedParty === party ? "selected" : ""}>${escapeHtml(displayLabel(party))}</option>`).join("")}</select>
+          <select id="topicSelect" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm"><option value="all">Öll málefni</option>${topics.map((topic) => `<option value="${escapeHtml(topic)}" ${state.selectedTopic === topic ? "selected" : ""}>${escapeHtml(displayLabel(topic))}</option>`).join("")}</select>
+          <select id="sourceSelect" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm"><option value="all">Allar rásir</option>${sources.map((source) => `<option value="${escapeHtml(source)}" ${state.selectedSource === source ? "selected" : ""}>${escapeHtml(shortSourceLabel(source))}</option>`).join("")}</select>
+          <select id="sentimentSelect" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm"><option value="all">Allt sentiment</option><option value="jakvaed" ${state.selectedSentiment === "jakvaed" ? "selected" : ""}>Jákvætt</option><option value="neikvaed" ${state.selectedSentiment === "neikvaed" ? "selected" : ""}>Neikvætt</option><option value="blandad" ${state.selectedSentiment === "blandad" ? "selected" : ""}>Blandað</option><option value="hlutlaus" ${state.selectedSentiment === "hlutlaus" ? "selected" : ""}>Hlutlaust</option></select>
+        `
+        : `
+          <select id="memberSelect" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm"><option value="all">Allir þingmenn</option>${members.map((member) => `<option value="${escapeHtml(member)}" ${state.selectedMember === member ? "selected" : ""}>${escapeHtml(displayMemberName(member))}</option>`).join("")}</select>
+          <select id="partySelect" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm"><option value="all">Allir flokkar</option>${parties.map((party) => `<option value="${escapeHtml(party)}" ${state.selectedParty === party ? "selected" : ""}>${escapeHtml(displayLabel(party))}</option>`).join("")}</select>
+          <select id="sourceSelect" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm"><option value="all">Allar rásir</option>${sources.map((source) => `<option value="${escapeHtml(source)}" ${state.selectedSource === source ? "selected" : ""}>${escapeHtml(shortSourceLabel(source))}</option>`).join("")}</select>
+          <select id="sentimentSelect" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm"><option value="all">Allt sentiment</option><option value="jakvaed" ${state.selectedSentiment === "jakvaed" ? "selected" : ""}>Jákvætt</option><option value="neikvaed" ${state.selectedSentiment === "neikvaed" ? "selected" : ""}>Neikvætt</option><option value="blandad" ${state.selectedSentiment === "blandad" ? "selected" : ""}>Blandað</option><option value="hlutlaus" ${state.selectedSentiment === "hlutlaus" ? "selected" : ""}>Hlutlaust</option></select>
+        `;
 
       const compareSection = `<section class="rounded-[32px] border border-[#d7e3fb] bg-white p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]">
         <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
@@ -1369,7 +1318,7 @@
         <div class="space-y-8">
           <div class="rounded-[32px] border border-[#d7e3fb] bg-white p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]">
             <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between"><div><div class="text-xs uppercase tracking-[0.24em] text-slate-400">Query builder</div><h2 class="mt-1 text-2xl font-semibold text-slate-900">${feedTitle}</h2><p class="mt-2 max-w-2xl text-sm text-[#60779a]">${feedDescription}</p></div><div class="flex flex-col gap-2 sm:flex-row"><input id="searchInput" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm" placeholder="Leita í mentions, topic eða flokki..." value="${escapeHtml(state.search)}" /><select id="sortSelect" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm"><option value="impact" ${state.sortBy === "impact" ? "selected" : ""}>Raða eftir áhrifum</option><option value="latest" ${state.sortBy === "latest" ? "selected" : ""}>Raða eftir nýjustu</option><option value="engagement" ${state.sortBy === "engagement" ? "selected" : ""}>Raða eftir virkni</option></select></div></div>
-            <div class="mt-4 grid gap-3 md:grid-cols-5"><select id="partySelect" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm"><option value="all">Allir flokkar</option>${parties.map((party) => `<option value="${escapeHtml(party)}" ${state.selectedParty === party ? "selected" : ""}>${escapeHtml(displayLabel(party))}</option>`).join("")}</select><select id="topicSelect" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm"><option value="all">Öll málefni</option>${topics.map((topic) => `<option value="${escapeHtml(topic)}" ${state.selectedTopic === topic ? "selected" : ""}>${escapeHtml(displayLabel(topic))}</option>`).join("")}</select><select id="memberSelect" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm"><option value="all">Allir þingmenn</option>${members.map((member) => `<option value="${escapeHtml(member)}" ${state.selectedMember === member ? "selected" : ""}>${escapeHtml(displayMemberName(member))}</option>`).join("")}</select><select id="sourceSelect" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm"><option value="all">Allar rásir</option>${sources.map((source) => `<option value="${escapeHtml(source)}" ${state.selectedSource === source ? "selected" : ""}>${escapeHtml(shortSourceLabel(source))}</option>`).join("")}</select><select id="sentimentSelect" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm"><option value="all">Allt sentiment</option><option value="jakvaed" ${state.selectedSentiment === "jakvaed" ? "selected" : ""}>Jákvætt</option><option value="neikvaed" ${state.selectedSentiment === "neikvaed" ? "selected" : ""}>Neikvætt</option><option value="blandad" ${state.selectedSentiment === "blandad" ? "selected" : ""}>Blandað</option><option value="hlutlaus" ${state.selectedSentiment === "hlutlaus" ? "selected" : ""}>Hlutlaust</option></select></div>
+            <div class="mt-4 grid gap-3 md:grid-cols-4">${filterFields}</div>
             <div class="mt-4 flex flex-wrap gap-2">${state.dashboard.keywords.slice(0, 8).map((keyword) => `<button data-keyword="${escapeHtml(keyword)}" class="keywordBtn rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700">#${escapeHtml(displayLabel(keyword))}</button>`).join("")}<button id="clearFiltersBtn" class="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700">Hreinsa síur</button></div>
             <div class="mt-8 space-y-6">
               <div class="space-y-3">${feed.length ? visibleFeed.map((item) => { const preview = truncateWords(item.summary, 100); const hasUrl = item.url && item.url !== "#"; return `<article class="rounded-[24px] border p-4 transition ${selected && selected.id === item.id ? "border-slate-950 bg-slate-950 text-white shadow-lg" : "border-slate-200 bg-white hover:border-slate-300"}"><button type="button" data-mention-id="${escapeHtml(item.id)}" class="mentionBtn block w-full text-left"><div class="flex flex-wrap items-center gap-2 text-xs font-medium ${selected && selected.id === item.id ? "text-slate-300" : "text-slate-500"}"><span class="rounded-full ${selected && selected.id === item.id ? "bg-white/10" : "bg-slate-100"} px-2.5 py-1">${escapeHtml(shortSourceLabel(item.source))}</span><span class="rounded-full ${selected && selected.id === item.id ? "bg-amber-300 text-slate-950" : "bg-amber-100 text-amber-700"} px-2.5 py-1">${escapeHtml(displayLabel(item.topic))}</span><span class="rounded-full px-2.5 py-1 ${sentimentClass(item.sentiment)}">${escapeHtml(displayLabel(item.sentiment))}</span><span>${escapeHtml(formatRelative(item.publishedAt))}</span><span>${escapeHtml(formatDateTime(item.publishedAt))}</span></div><div class="mt-3 text-base font-semibold leading-6">${escapeHtml(item.title)}</div><p class="mt-2 text-sm leading-6 ${selected && selected.id === item.id ? "text-slate-300" : "text-slate-600"}">${escapeHtml(preview.text)}</p><div class="mt-3 flex flex-wrap gap-4 text-xs ${selected && selected.id === item.id ? "text-slate-300" : "text-slate-500"}"><span>Flokkur ${escapeHtml(displayLabel(item.party))}</span><span>Reach ${escapeHtml(item.reach)}</span><span>Engagement ${escapeHtml(item.engagements)}</span><span>Áhrif ${escapeHtml(String(Math.round(item.impactScore)))}</span></div></button><div class="mt-4">${hasUrl ? `<a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer" class="text-sm font-semibold ${selected && selected.id === item.id ? "text-[#8ebeff]" : "text-[#1446dc]"}">Sjá meira</a>` : `<span class="text-sm font-semibold ${selected && selected.id === item.id ? "text-slate-400" : "text-slate-400"}">Enginn hlekkur</span>`}</div></article>`; }).join("") : `<div class="rounded-[24px] border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">Engin atriði passa við núverandi síur.</div>`}${feed.length > state.visibleFeedCount ? `<div class="flex justify-center pt-4"><button id="toggleFeedBtn" type="button" class="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm">Sjá meira (${Math.min(10, feed.length - state.visibleFeedCount)} í viðbót)</button></div>` : ""}</div>
@@ -1401,15 +1350,11 @@
         </div>
       </section>`;
 
-      const topSection = currentPage === "flokkar"
-        ? compareSection
-        : leaderSection;
+      const topSection = currentPage === "flokkar" ? compareSection : leaderSection;
       const middleSection = currentPage === "flokkar"
-        ? `<section class="grid gap-8 xl:grid-cols-[0.95fr_1.05fr]">${renderCollectionOverview(curatedPoliticalFeed)}${renderLatestAnalysis(curatedPoliticalFeed, selected)}</section>`
-        : `<section class="grid gap-8 xl:grid-cols-[1.05fr_0.95fr]">${renderVoicesInFocus(voices)}${renderWeekSummary(summary)}</section>`;
-      const lowerSection = currentPage === "flokkar"
         ? `${analyticsSection}${pollingSection}`
-        : `<section>${renderMethodologyCard()}</section>`;
+        : `<section>${renderVoicesInFocus(voices)}</section>`;
+      const lowerSection = "";
 
       app.innerHTML = `
         <div class="space-y-10">
