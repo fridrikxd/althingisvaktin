@@ -1,5 +1,5 @@
 const POLL_SNAPSHOT = {
-  updatedAt: "2026-02-26T12:00:00Z",
+  updatedAt: "2026-03-24T11:44:38Z",
   polls: [
     {
       source: "Gallup",
@@ -21,48 +21,48 @@ const POLL_SNAPSHOT = {
     },
     {
       source: "Maskina",
-      sourceUrl: "https://maskina.is/fylgi-flokka-a-althingi/",
+      sourceUrl: "https://maskina.is/samfylkingin-gefur-eftir-i-nyrri-maskinukonnun/",
       status: "Handskrad myndsamantekt",
-      fetchedAt: "2026-02-26T12:00:00Z",
-      publishedAt: "2026-02-26",
+      fetchedAt: "2026-03-24T11:44:38Z",
+      publishedAt: "2026-03-24",
       parties: [
-        { party: "Samfylkingin", percentage: 27.2 },
-        { party: "Midflokkurinn", percentage: 19.4 },
-        { party: "Sjalfstaedisflokkurinn", percentage: 16.2 },
-        { party: "Vidreisn", percentage: 13.4 },
-        { party: "Framsoknarflokkurinn", percentage: 7.0 },
-        { party: "Piratar", percentage: 5.2 },
-        { party: "Flokkur folksins", percentage: 4.8 },
-        { party: "Vinstrihreyfingin - graent frambod", percentage: 4.1 },
-        { party: "Sosialistaflokkurinn", percentage: 3.1 }
+        { party: "Samfylkingin", percentage: 25.5 },
+        { party: "Midflokkurinn", percentage: 18.4 },
+        { party: "Sjalfstaedisflokkurinn", percentage: 16.1 },
+        { party: "Vidreisn", percentage: 14.0 },
+        { party: "Framsoknarflokkurinn", percentage: 7.1 },
+        { party: "Flokkur folksins", percentage: 5.8 },
+        { party: "Piratar", percentage: 5.0 },
+        { party: "Vinstrihreyfingin - graent frambod", percentage: 4.4 },
+        { party: "Sosialistaflokkurinn", percentage: 3.5 }
       ]
     }
   ],
   pollAverage: [
-    { party: "Samfylkingin", percentage: 27.9 },
-    { party: "Midflokkurinn", percentage: 19.7 },
-    { party: "Sjalfstaedisflokkurinn", percentage: 17.2 },
-    { party: "Vidreisn", percentage: 12.2 },
-    { party: "Framsoknarflokkurinn", percentage: 6.8 },
-    { party: "Flokkur folksins", percentage: 5.3 },
-    { party: "Vinstrihreyfingin - graent frambod", percentage: 4.2 },
-    { party: "Piratar", percentage: 3.9 },
-    { party: "Sosialistaflokkurinn", percentage: 2.8 }
+    { party: "Samfylkingin", percentage: 27.0 },
+    { party: "Midflokkurinn", percentage: 19.4 },
+    { party: "Sjalfstaedisflokkurinn", percentage: 17.1 },
+    { party: "Vidreisn", percentage: 12.5 },
+    { party: "Framsoknarflokkurinn", percentage: 6.9 },
+    { party: "Flokkur folksins", percentage: 5.8 },
+    { party: "Vinstrihreyfingin - graent frambod", percentage: 4.3 },
+    { party: "Piratar", percentage: 3.8 },
+    { party: "Sosialistaflokkurinn", percentage: 3.0 }
   ],
   forecastTimeline: [
     { source: "Gallup", publishedAt: "2026-02-26", leader: "Samfylkingin", leaderValue: 28.5 },
-    { source: "Maskina", publishedAt: "2026-02-26", leader: "Samfylkingin", leaderValue: 27.2 }
+    { source: "Maskina", publishedAt: "2026-03-24", leader: "Samfylkingin", leaderValue: 25.5 }
   ],
   seatProjection: [
-    { party: "Samfylkingin", seats: 18 },
-    { party: "Midflokkurinn", seats: 12 },
-    { party: "Sjalfstaedisflokkurinn", seats: 11 },
-    { party: "Vidreisn", seats: 8 },
-    { party: "Framsoknarflokkurinn", seats: 4 },
-    { party: "Flokkur folksins", seats: 3 },
-    { party: "Vinstrihreyfingin - graent frambod", seats: 3 },
-    { party: "Piratar", seats: 2 },
-    { party: "Sosialistaflokkurinn", seats: 2 }
+    { party: "Samfylkingin", seats: 19 },
+    { party: "Midflokkurinn", seats: 14 },
+    { party: "Sjalfstaedisflokkurinn", seats: 12 },
+    { party: "Vidreisn", seats: 9 },
+    { party: "Framsoknarflokkurinn", seats: 5 },
+    { party: "Flokkur folksins", seats: 4 },
+    { party: "Vinstrihreyfingin - graent frambod", seats: 0 },
+    { party: "Piratar", seats: 0 },
+    { party: "Sosialistaflokkurinn", seats: 0 }
   ]
 };
 
