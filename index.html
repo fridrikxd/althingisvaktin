@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="is">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sjálfstæðisvaktin</title>
+  <link rel="icon" type="image/png" href="https://xd.is/wp-content/uploads/2025/11/XD-Social_Media-Facebook-Profile_picture.png" />
+  <link rel="shortcut icon" href="https://xd.is/wp-content/uploads/2025/11/XD-Social_Media-Facebook-Profile_picture.png" />
+  <link rel="apple-touch-icon" href="https://xd.is/wp-content/uploads/2025/11/XD-Social_Media-Facebook-Profile_picture.png" />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-[radial-gradient(circle_at_top,_#ffffff,_#f4f8ff_38%,_#e4eefc_72%,_#d8e6fb)] text-slate-900">
+  <div id="app" class="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8"></div>
+  <script>
+    const API_URL = "https://althingisvaktin-api.fridriksi.workers.dev";
+    const PARTY_ALIASES = {
+      "Sjalfstaedisflokkurinn": [
+        "sjalfstaedisflokkurinn",
+        "sjalfstaedisflokkur",
+        "sjalfstaedisflokkinn",
+        "sjalfstaedisflokknum",
+        "sjalfstaedisflokksins",
+        "xd",
+        "sjalfstaedismenn",
+        "sjalfstaedismonnum",
+        "sjalfstaedismanna",
+        "gudrun hafsteinsdottir",
+        "gudrunu hafsteinsdottur",
+        "gudrunar hafsteinsdottur",
+        "landsfundur",
+        "landsfund",
+        "landsfundi",
+        "landsfundar",
+        "flokksradsfundur",
+        "flokksradsfund"
+      ],
+      "Samfylkingin": [
+        "samfylking",
+        "samfylkingin",
+        "samfylkinguna",
+        "samfylkingunni",
+        "samfylkingarinnar",
+        "samfylkingarfolk",
+        "samfylkingarfolki",
+        "samfylkingarfolks",
+        "kristrun frostadottir",
+        "kristrunu frostadottur",
+        "kristrunar frostadottur",
+        "landsfundur",
+        "landsfund",
+        "landsfundi",
+        "landsfundar"
+      ],
+      "Vidreisn": [
+        "vidreisn",
+        "thorgerdur katrin gunnarsdottir"
+      ],
+      "Framsoknarflokkurinn": [
+        "framsokn",
+        "framsoknarflokkurinn",
+        "framsoknarflokkur",
+        "lilja alfredsdottir"
+      ],
+      "Flokkur folksins": [
+        "flokkur folksins",
+        "flokkur folkins",
+        "inga saeland"
+      ],
+      "Midflokkurinn": [
+        "midflokkurinn",
+        "midflokkur",
+        "sigmundur david gunnlaugsson",
+        "sigmundur david"
+      ],
+      "Vinstrihreyfingin - graent frambod": [
+        "vinstrihreyfingin - graent frambod",
+        "vinstrihreyfingin",
+        "vinstri graen",
+        "vinstri græn",
+        "rosa bjork brynjolfsdottir"
+      ],
+      "Piratar": [
+        "piratar",
+        "pirati",
+        "oktavia hrund gudrunar jons"
+      ]
+    };
+    const PARTY_MEMBERS = {
+      "Sjalfstaedisflokkurinn": [
+        "aslaug arna sigurbjornsdottir", "bryndis haraldsdottir", "dilja mist einarsdottir",
+        "gudlaugur thor thordarson", "gudrun hafsteinsdottir", "hildur sverrisdottir",
+        "jens gardar helgason", "jon gunnarsson", "jon petur zimsen",
+        "njall trausti fridbertsson", "olafur adolfsson", "rosa gudbjartsdottir",
+        "vilhjalmur arnason", "thordis kolbrun reykfjord gylfadottir"
+      ],
+      "Samfylkingin": [
+        "alma d moller", "arna lara jonsdottir", "asa berglind hjalmarsdottir",
+        "dagbjort hakonardottir", "dagur b eggertsson", "eydis asbjornsdottir",
+        "gudmundur ari sigurjonsson", "johann pall johannsson", "kristjan thordur snaebjarnarson",
+        "kristrun frostadottir", "logi einarsson", "ragna sigurdardottir",
+        "sigmundur ernir runarsson", "vidir reynisson", "thorunn sveinbjarnardottir"
+      ],
+      "Vidreisn": [
+        "eirikur bjorn bjorgvinsson", "grimur grimsson", "hanna katrin fridriksson",
+        "ingvar thoroddsson", "jon gnarr", "maria rut kristinsdottir",
+        "pawel bartoszek", "sandra sigurdardottir", "sigmar gudmundsson",
+        "thorbjorg sigridur gunnlaugsdottir", "thorgerdur katrin gunnarsdottir"
+      ],
+      "Framsoknarflokkurinn": [
+        "halla hrund logadottir", "ingibjorg isaksen", "sigurdur ingi johannsson",
+        "stefan vagn stefansson", "thorarinn ingi petursson"
+      ],
+      "Flokkur folksins": [
+        "asthildur loa thorsdottir", "eyjolfur armannsson", "gudmundur ingi kristinsson",
+        "inga saeland", "jonina bjork oskarsdottir", "kolbrun aslaugar baldursdottir",
+        "lilja rafney magnusdottir", "ragnar thor ingolfsson", "sigurdur helgi palmason",
+        "sigurjon thordarson"
+      ],
+      "Midflokkurinn": [
+        "bergthor olason", "ingibjorg davidsdottir", "karl gauti hjaltason",
+        "nanna margret gunnlaugsdottir", "sigmundur david gunnlaugsson",
+        "sigridur a andersen", "snorri masson", "thorgrimur sigmundsson"
+      ],
+      "Vinstrihreyfingin - graent frambod": [
+        "rosa bjork brynjolfsdottir"
+      ],
+      "Piratar": [
+        "oktavia hrund gudrunar jons"
+      ]
+    };
+    const TOPIC_ALIASES = {
+      "ESB": ["esb", "evropusamband", "adild"],
+      "Orkumal": ["orka", "virkjun", "orkuskipti"],
+      "Skattamal": ["skatt", "vsk"],
+      "Efnahagsmal": ["hagkerfi", "vextir", "verdbolga"],
+      "Husnaedismal": ["husnaedi", "leiga", "ibud"],
+      "Heilbrigdismal": ["heilbrigdi", "sjukrahus", "bidlisti"],
+      "Innflytjendamal": ["innflytj", "haelisleit"],
+      "Landbunadur": ["landbunadur", "baendur", "matvaeli"]
+    };
+    const PARTY_LEADERS = {
+      "Sjalfstaedisflokkurinn": { name: "Guðrún Hafsteinsdóttir", aliases: ["gudrun hafsteinsdottir", "gudrunu hafsteinsdottur", "gudrunar hafsteinsdottur"] },
+      "Samfylkingin": { name: "Kristrún Frostadóttir", aliases: ["kristrun frostadottir", "kristrunu frostadottur", "kristrunar frostadottur"] },
+      "Vidreisn": { name: "Þorgerður Katrín Gunnarsdóttir", aliases: ["thorgerdur katrin gunnarsdottir", "thorgerdur katrin"] },
+      "Framsoknarflokkurinn": { name: "Lilja Alfreðsdóttir", aliases: ["lilja alfredsdottir"] },
+      "Flokkur folksins": { name: "Inga Sæland", aliases: ["inga saeland"] },
+      "Midflokkurinn": { name: "Sigmundur Davíð Gunnlaugsson", aliases: ["sigmundur david gunnlaugsson", "sigmundur david"] },
+      "Vinstrihreyfingin - graent frambod": { name: "Rósa Björk Brynjólfsdóttir", aliases: ["rosa bjork brynjolfsdottir", "rosa bjork"] },
+      "Piratar": { name: "Oktavía Hrund Guðrúnar Jóns", aliases: ["oktavia hrund gudrunar jons", "oktavia hrund"] }
+    };
+    const MEMBER_DISPLAY_LABELS = {
+      "aslaug arna sigurbjornsdottir": "Áslaug Arna Sigurbjörnsdóttir",
+      "bryndis haraldsdottir": "Bryndís Haraldsdóttir",
+      "dilja mist einarsdottir": "Diljá Mist Einarsdóttir",
+      "gudlaugur thor thordarson": "Guðlaugur Þór Þórðarson",
+      "gudrun hafsteinsdottir": "Guðrún Hafsteinsdóttir",
+      "hildur sverrisdottir": "Hildur Sverrisdóttir",
+      "jens gardar helgason": "Jens Garðar Helgason",
+      "jon gunnarsson": "Jón Gunnarsson",
+      "jon petur zimsen": "Jón Pétur Zimsen",
+      "njall trausti fridbertsson": "Njáll Trausti Friðbertsson",
+      "olafur adolfsson": "Ólafur Adolfsson",
+      "rosa gudbjartsdottir": "Rósa Guðbjartsdóttir",
+      "vilhjalmur arnason": "Vilhjálmur Árnason",
+      "thordis kolbrun reykfjord gylfadottir": "Þórdís Kolbrún Reykfjörð Gylfadóttir",
+      "alma d moller": "Alma D. Möller",
+      "arna lara jonsdottir": "Arna Lára Jónsdóttir",
+      "asa berglind hjalmarsdottir": "Ása Berglind Hjálmarsdóttir",
+      "dagbjort hakonardottir": "Dagbjört Hákonardóttir",
+      "dagur b eggertsson": "Dagur B. Eggertsson",
+      "eydis asbjornsdottir": "Eydís Ásbjörnsdóttir",
+      "gudmundur ari sigurjonsson": "Guðmundur Ari Sigurjónsson",
+      "johann pall johannsson": "Jóhann Páll Jóhannsson",
+      "kristjan thordur snaebjarnarson": "Kristján Þórður Snæbjarnarson",
+      "kristrun frostadottir": "Kristrún Frostadóttir",
+      "logi einarsson": "Logi Einarsson",
+      "ragna sigurdardottir": "Ragna Sigurðardóttir",
+      "sigmundur ernir runarsson": "Sigmundur Ernir Rúnarsson",
+      "vidir reynisson": "Víðir Reynisson",
+      "thorunn sveinbjarnardottir": "Þórunn Sveinbjarnardóttir",
+      "eirikur bjorn bjorgvinsson": "Eiríkur Björn Björgvinsson",
+      "grimur grimsson": "Grímur Grímsson",
+      "hanna katrin fridriksson": "Hanna Katrín Friðriksson",
+      "ingvar thoroddsson": "Ingvar Þórðarson",
+      "jon gnarr": "Jón Gnarr",
+      "maria rut kristinsdottir": "María Rut Kristinsdóttir",
+      "pawel bartoszek": "Pawel Bartoszek",
+      "sandra sigurdardottir": "Sandra Sigurðardóttir",
+      "sigmar gudmundsson": "Sigmar Guðmundsson",
+      "thorbjorg sigridur gunnlaugsdottir": "Þorbjörg Sigríður Gunnlaugsdóttir",
+      "thorgerdur katrin gunnarsdottir": "Þorgerður Katrín Gunnarsdóttir",
+      "halla hrund logadottir": "Halla Hrund Logadóttir",
+      "ingibjorg isaksen": "Ingibjörg Isaksen",
+      "sigurdur ingi johannsson": "Sigurður Ingi Jóhannsson",
+      "stefan vagn stefansson": "Stefán Vagn Stefánsson",
+      "thorarinn ingi petursson": "Þórarinn Ingi Pétursson",
+      "asthildur loa thorsdottir": "Ásthildur Lóa Þórsdóttir",
+      "eyjolfur armannsson": "Eyjólfur Ármannsson",
+      "gudmundur ingi kristinsson": "Guðmundur Ingi Kristinsson",
+      "inga saeland": "Inga Sæland",
+      "jonina bjork oskarsdottir": "Jónína Björk Óskarsdóttir",
+      "kolbrun aslaugar baldursdottir": "Kolbrún Áslaugar Baldursdóttir",
+      "lilja rafney magnusdottir": "Lilja Rafney Magnúsdóttir",
+      "ragnar thor ingolfsson": "Ragnar Þór Ingólfsson",
+      "sigurdur helgi palmason": "Sigurður Helgi Pálmason",
+      "sigurjon thordarson": "Sigurjón Þórðarson",
+      "bergthor olason": "Bergþór Ólason",
+      "ingibjorg davidsdottir": "Ingibjörg Davíðsdóttir",
+      "karl gauti hjaltason": "Karl Gauti Hjaltason",
+      "nanna margret gunnlaugsdottir": "Nanna Margrét Gunnlaugsdóttir",
+      "sigmundur david gunnlaugsson": "Sigmundur Davíð Gunnlaugsson",
+      "sigridur a andersen": "Sigríður Á. Andersen",
+      "snorri masson": "Snorri Másson",
+      "thorgrimur sigmundsson": "Þorgrímur Sigmundsson",
+      "rosa bjork brynjolfsdottir": "Rósa Björk Brynjólfsdóttir",
+      "oktavia hrund gudrunar jons": "Oktavía Hrund Guðrúnar Jóns"
+    };
+    const state = {
+      dashboard: baseDashboard(),
+      loading: true,
+      error: "",
+      usingDemoData: false,
+      lastUpdated: "",
+      search: "",
+      selectedParty: "all",
+      selectedTopic: "all",
+      selectedMember: "all",
+      selectedSource: "all",
+      selectedSentiment: "all",
+      selectedMentionId: null,
+      sortBy: "impact",
+      queryMode: "all",
+      autoRefresh: true,
+      visibleFeedCount: 10,
+      comparePartyA: "Sjalfstaedisflokkurinn",
+      comparePartyB: "Samfylkingin",
+      compareLeaderA: "Sjalfstaedisflokkurinn",
+      compareLeaderB: "Samfylkingin"
+    };
+
+    function baseDashboard() {
+      return {
+        feed: [],
+        parties: [],
+        topics: [],
+        alerts: [],
+        stats: [],
+        channelBreakdown: [],
+        keywords: [],
+        trendSignals: [],
+        rssSources: [],
+        socialSources: [],
+        polls: [],
+        pollAverage: [],
+        forecastTimeline: [],
+        seatProjection: [],
+        sentimentTotals: { positive: 0, negative: 0, mixed: 0, neutral: 0 }
+      };
+    }
+
+    function stripAccents(str = "") {
+      return String(str)
+        .toLowerCase()
+        .replace(/á|à|â|ä/g, "a")
+        .replace(/é|è|ê|ë/g, "e")
+        .replace(/í|ì|î|ï/g, "i")
+        .replace(/ó|ò|ô|ö/g, "o")
+        .replace(/ú|ù|û|ü/g, "u")
+        .replace(/ý/g, "y")
+        .replace(/ð/g, "d")
+        .replace(/þ/g, "th")
+        .replace(/æ/g, "ae")
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "");
+    }
+    function escapeHtml(str = "") {
+      return String(str).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#39;");
+    }
+    function cleanDisplayText(str = "") {
+      const decoded = String(str)
+        .replace(/<!\[CDATA\[(.*?)\]\]>/gis, "$1")
+        .replace(/&lt;/gi, "<")
+        .replace(/&gt;/gi, ">")
+        .replace(/&nbsp;/gi, " ")
+        .replace(/&amp;/gi, "&")
+        .replace(/&quot;/gi, '"')
+        .replace(/&#39;/gi, "'")
+        .replace(/&#x27;/gi, "'")
+        .replace(/&#x2F;/gi, "/");
+
+      return decoded
+        .replace(/<script[\s\S]*?<\/script>/gi, " ")
+        .replace(/<style[\s\S]*?<\/style>/gi, " ")
+        .replace(/<[^>]+>/g, " ")
+        .replace(/\s+/g, " ")
+        .trim();
+    }
+    function detectByAliases(text, aliasMap, fallback) {
+      const normalized = stripAccents(text);
+      for (const [label, aliases] of Object.entries(aliasMap)) {
+        if (aliases.some((alias) => containsAlias(normalized, alias))) return label;
+      }
+      return fallback;
+    }
+    function getPartySearchTerms(party) {
+      return [
+        ...(PARTY_ALIASES[party] || []),
+        ...(PARTY_MEMBERS[party] || [])
+      ];
+    }
+    function allTrackedMembers() {
+      return [...new Set([
+        ...Object.values(PARTY_MEMBERS).flat(),
+        ...Object.values(PARTY_LEADERS).map((leader) => leader.aliases?.[0]).filter(Boolean)
+      ])].sort((a, b) => displayLabel(a).localeCompare(displayLabel(b), "is"));
+    }
+    function shortSourceLabel(source = "") {
+      return String(source)
+        .replace(/\s+RSS$/i, "")
+        .replace(/\s+HTML$/i, "")
+        .replace(/^Reddit\s*\/\s*/i, "Reddit: ")
+        .trim();
+    }
+    function displayMemberName(value = "") {
+      return MEMBER_DISPLAY_LABELS[value] || displayLabel(value);
+    }
+    function displayAlertChannel(value = "") {
+      const labels = {
+        "Cross-channel": "Þvert á rásir",
+        "Sentiment": "Viðhorf",
+        "Polling": "Kannanir",
+        "Kannanir": "Kannanir"
+      };
+      return labels[value] || shortSourceLabel(value);
+    }
+    function containsAlias(normalizedText, alias) {
+      const normalizedAlias = stripAccents(alias);
+      const escaped = normalizedAlias.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+      const pattern = new RegExp(`(^|[^a-z0-9])${escaped}([^a-z0-9]|$)`, "i");
+      if (pattern.test(normalizedText)) return true;
+      return normalizedAlias.length >= 4 && normalizedText.includes(normalizedAlias);
+    }
+    function inferSentiment(text = "") {
+      const normalized = stripAccents(text);
+      const pos = ["studning", "traust", "fagnar", "sterkt", "lausn"];
+      const neg = ["gagnryni", "vandamal", "deila", "fall", "thrystingur"];
+      const hasPos = pos.some((word) => normalized.includes(word));
+      const hasNeg = neg.some((word) => normalized.includes(word));
+      if (hasPos && hasNeg) return "blandad";
+      if (hasPos) return "jakvaed";
+      if (hasNeg) return "neikvaed";
+      return "hlutlaus";
+    }
+    function formatNumber(n) {
+      return new Intl.NumberFormat("is-IS").format(Number(n || 0));
+    }
+    function formatRelative(iso) {
+      if (!iso) return "nuna";
+      const diff = Math.max(1, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
+      if (diff < 60) return `${diff} min. sidan`;
+      if (diff < 1440) return `${Math.round(diff / 60)} klst. sidan`;
+      return `${Math.round(diff / 1440)} dagar sidan`;
+    }
+    function formatDateTime(iso) {
+      if (!iso) return "";
+      const date = new Date(iso);
+      if (Number.isNaN(date.getTime())) return "";
+      return date.toLocaleString("is-IS", {
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit"
+      });
+    }
+    function sentimentClass(sentiment) {
+      if (sentiment === "jakvaed") return "bg-emerald-100 text-emerald-700";
+      if (sentiment === "neikvaed") return "bg-rose-100 text-rose-700";
+      if (sentiment === "blandad") return "bg-amber-100 text-amber-700";
+      return "bg-slate-200 text-slate-700";
+    }
+    function displayLabel(value = "") {
+      const labels = {
+        "Sjalfstaedisflokkurinn": "Sjálfstæðisflokkurinn",
+        "Samfylkingin": "Samfylkingin",
+        "Flokkur folksins": "Flokkur fólksins",
+        "Vidreisn": "Viðreisn",
+        "Framsoknarflokkurinn": "Framsóknarflokkurinn",
+        "Midflokkurinn": "Miðflokkurinn",
+        "Piratar": "Píratar",
+        "Vinstrihreyfingin - graent frambod": "Vinstrihreyfingin - grænt framboð",
+        "Sosialistaflokkurinn": "Sósíalistaflokkurinn",
+        "Orkumal": "Orkumál",
+        "Skattamal": "Skattamál",
+        "Efnahagsmal": "Efnahagsmál",
+        "Husnaedismal": "Húsnæðismál",
+        "Heilbrigdismal": "Heilbrigðismál",
+        "Innflytjendamal": "Innflytjendamál",
+        "Landbunadur": "Landbúnaður",
+        "Menntamal": "Menntamál",
+        "Annad": "Annað",
+        "Oflokkat": "Óflokkað",
+        "jakvaed": "jákvætt",
+        "neikvaed": "neikvætt",
+        "blandad": "blandað",
+        "hlutlaus": "hlutlaust",
+        "Mjog hratt": "Mjög hratt",
+        "Hratt": "Hratt",
+        "Midlungs": "Miðlungs",
+        "An titils": "Án titils"
+      };
+      return labels[value] || value;
+    }
+    function canonicalParty(value = "") {
+      const party = String(value || "").trim();
+      const canonical = {
+        "Samfylking": "Samfylkingin",
+        "Samfylkingin": "Samfylkingin",
+        "Framsokn": "Framsoknarflokkurinn",
+        "Framsoknarflokkurinn": "Framsoknarflokkurinn",
+        "Pirati": "Piratar",
+        "Piratar": "Piratar",
+        "Vinstri graen": "Vinstrihreyfingin - graent frambod",
+        "Vinstrihreyfingin - graent frambod": "Vinstrihreyfingin - graent frambod",
+        "Oflokkad": "Oflokkat",
+        "Óflokkað": "Oflokkat",
+        "Oflokkat": "Oflokkat"
+      };
+      return canonical[party] || party;
+    }
+    function sortPartyOptions(values = []) {
+      return [...new Set(values.map((value) => canonicalParty(value)).filter(Boolean))].sort((a, b) => {
+        if (a === "Oflokkat") return 1;
+        if (b === "Oflokkat") return -1;
+        return displayLabel(a).localeCompare(displayLabel(b), "is");
+      });
+    }
+    function itemMatchesParty(item, selectedParty) {
+      if (selectedParty === "all") return true;
+      const canonicalSelected = canonicalParty(selectedParty);
+      const canonicalItemParty = canonicalParty(item.party || "");
+      if (canonicalItemParty === canonicalSelected) return true;
+
+      const haystack = stripAccents([item.title, item.summary, item.source, item.party].join(" "));
+      const aliases = getPartySearchTerms(canonicalSelected);
+      return aliases.some((alias) => containsAlias(haystack, alias));
+    }
+    function itemMatchesTopic(item, selectedTopic) {
+      if (selectedTopic === "all") return true;
+      if ((item.topic || "") === selectedTopic) return true;
+      const haystack = stripAccents([item.title, item.summary, item.source, item.topic].join(" "));
+      const aliases = TOPIC_ALIASES[selectedTopic] || [];
+      return aliases.some((alias) => containsAlias(haystack, alias));
+    }
+    function itemMatchesMember(item, selectedMember) {
+      if (selectedMember === "all") return true;
+      const haystack = stripAccents([item.title, item.summary, item.source, item.author, item.party].join(" "));
+      return containsAlias(haystack, selectedMember);
+    }
+    function resolveParty(item) {
+      const combined = `${item.title || ""} ${item.summary || ""} ${item.source || ""}`;
+      const inferredParty = canonicalParty(detectByAliases(combined, PARTY_ALIASES, "Oflokkat"));
+      const currentParty = canonicalParty(item.party || "");
+      if (!currentParty || currentParty === "Oflokkat") return inferredParty;
+      const aliases = getPartySearchTerms(currentParty);
+      const matchesCurrent = aliases.some((alias) => containsAlias(stripAccents(combined), alias));
+      return matchesCurrent ? currentParty : inferredParty;
+    }
+    function resolveTopic(item) {
+      const combined = `${item.title || ""} ${item.summary || ""} ${item.source || ""}`;
+      const inferredTopic = detectByAliases(combined, TOPIC_ALIASES, "Annad");
+      const currentTopic = item.topic || "";
+      if (!currentTopic || currentTopic === "Annad") return inferredTopic;
+      const aliases = TOPIC_ALIASES[currentTopic] || [];
+      const matchesCurrent = aliases.some((alias) => containsAlias(stripAccents(combined), alias));
+      return matchesCurrent ? currentTopic : inferredTopic;
+    }
+    function toNumber(value) {
+      return Number(String(value || 0).replace(/[^0-9.]/g, "")) || 0;
+    }
+    function impactScore(item) {
+      const velocityBoost = item.velocity === "Mjog hratt" ? 30 : item.velocity === "Hratt" ? 15 : 5;
+      return toNumber(item.reach) * 12 + toNumber(item.engagements) * 6 + velocityBoost;
+    }
+    function truncateWords(text = "", maxWords = 150) {
+      const words = String(text).trim().split(/\s+/).filter(Boolean);
+      if (words.length <= maxWords) return { text: String(text).trim(), truncated: false };
+      return { text: `${words.slice(0, maxWords).join(" ")}...`, truncated: true };
+    }
+    function percent(value, total) {
+      if (!total) return "0%";
+      return `${Math.round((value / total) * 100)}%`;
+    }
+    function feedForBenchmark() {
+      const maxAgeMs = 14 * 86400000;
+      return state.dashboard.feed.filter((item) => {
+        const matchesMode = state.queryMode === "all" || item.source.toLowerCase().includes(state.queryMode.toLowerCase());
+        const publishedTime = new Date(item.publishedAt).getTime();
+        const withinWindow = Number.isNaN(publishedTime) ? true : (Date.now() - publishedTime <= maxAgeMs);
+        return matchesMode && withinWindow;
+      });
+    }
+    function sliceFeedByDays(feed, daysBackStart, daysBackEnd) {
+      const now = Date.now();
+      const olderThan = now - (daysBackStart * 86400000);
+      const newerThan = now - (daysBackEnd * 86400000);
+      return feed.filter((item) => {
+        const timestamp = new Date(item.publishedAt).getTime();
+        return timestamp <= newerThan && timestamp > olderThan;
+      });
+    }
+    function benchmarkForParty(party, feed) {
+      const items = feed.filter((item) => itemMatchesParty(item, party));
+      const sentiment = { jakvaed: 0, neikvaed: 0, blandad: 0, hlutlaus: 0 };
+      const topicMap = new Map();
+      const sourceMap = new Map();
+
+      items.forEach((item) => {
+        sentiment[item.sentiment] = (sentiment[item.sentiment] || 0) + 1;
+        topicMap.set(item.topic, (topicMap.get(item.topic) || 0) + 1);
+        sourceMap.set(item.source, (sourceMap.get(item.source) || 0) + 1);
+      });
+
+      const recentCount = sliceFeedByDays(items, 7, 0).length;
+      const priorCount = sliceFeedByDays(items, 14, 7).length;
+      const growth = priorCount === 0 ? (recentCount > 0 ? 100 : 0) : Math.round(((recentCount - priorCount) / priorCount) * 100);
+
+      return {
+        party,
+        mentions: items.length,
+        shareOfVoice: percent(items.length, feed.length || 1),
+        growth,
+        sentiment,
+        topTopics: [...topicMap.entries()].map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value).slice(0, 3),
+        topSources: [...sourceMap.entries()].map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value).slice(0, 3)
+      };
+    }
+    function itemMatchesLeader(item, party) {
+      const leader = PARTY_LEADERS[party];
+      if (!leader) return false;
+      const haystack = stripAccents([item.title, item.summary, item.source, item.author, item.party].join(" "));
+      return (leader.aliases || []).some((alias) => containsAlias(haystack, alias));
+    }
+    function sourceBalancedFeed(feed, maxPerSource = 2) {
+      const counts = new Map();
+      return (feed || []).filter((item) => {
+        const key = item.source || "Unknown";
+        const count = counts.get(key) || 0;
+        if (count >= maxPerSource) return false;
+        counts.set(key, count + 1);
+        return true;
+      });
+    }
+    function benchmarkForLeader(party, feed) {
+      const leader = PARTY_LEADERS[party];
+      if (!leader) return null;
+      const leaderContextTerms = [
+        "formadur", "formann", "formanns", "leidtogi", "landsfund", "landsfundur",
+        "landsfundi", "landsfundar", "flokksrad", "flokksradsfundur", "flokksradsfund",
+        "flokksþing", "flokksþingi", "aðalfundur", "adalfundur", "landsþing", "landsthing"
+      ];
+      const items = feed.filter((item) => {
+        if (itemMatchesLeader(item, party)) return true;
+        if (!itemMatchesParty(item, party)) return false;
+        const haystack = stripAccents([item.title, item.summary, item.source, item.author, item.party].join(" "));
+        const hasLeaderContext = leaderContextTerms.some((term) => containsAlias(haystack, term));
+        const mentionsLeaderRole = containsAlias(haystack, "formadur") || containsAlias(haystack, "formann");
+        return hasLeaderContext || mentionsLeaderRole;
+      });
+      const sentiment = { jakvaed: 0, neikvaed: 0, blandad: 0, hlutlaus: 0 };
+      const topicMap = new Map();
+      const sourceMap = new Map();
+
+      items.forEach((item) => {
+        sentiment[item.sentiment] = (sentiment[item.sentiment] || 0) + 1;
+        topicMap.set(item.topic, (topicMap.get(item.topic) || 0) + 1);
+        sourceMap.set(item.source, (sourceMap.get(item.source) || 0) + 1);
+      });
+
+      const recentCount = sliceFeedByDays(items, 7, 0).length;
+      const priorCount = sliceFeedByDays(items, 14, 7).length;
+      const growth = priorCount === 0 ? (recentCount > 0 ? 100 : 0) : Math.round(((recentCount - priorCount) / priorCount) * 100);
+
+      return {
+        party,
+        leaderName: leader.name,
+        mentions: items.length,
+        shareOfVoice: percent(items.length, feed.length || 1),
+        growth,
+        sentiment,
+        topTopics: [...topicMap.entries()].map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value).slice(0, 3),
+        topSources: [...sourceMap.entries()].map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value).slice(0, 3)
+      };
+    }
+    function itemLooksPolitical(item) {
+      if (canonicalParty(item.party || "") !== "Oflokkat") return true;
+      const haystack = stripAccents([item.title, item.summary, item.source, item.author, item.topic].join(" "));
+      const parliamentaryTerms = [
+        "althingi", "thingmadur", "thingmenn", "stjornmal", "stjornmalaflokkur",
+        "radherra", "rikisstjorn", "frumvarp", "nefnd", "raeda", "atkvaedagreidsla",
+        "kosningar", "fylgi", "stefnumal", "stjornarskra", "loggjafarthing"
+      ];
+      if (parliamentaryTerms.some((term) => containsAlias(haystack, term))) return true;
+      if (Object.keys(PARTY_ALIASES).some((party) => getPartySearchTerms(party).some((alias) => containsAlias(haystack, alias)))) return true;
+      if (Object.values(PARTY_LEADERS).some((leader) => (leader.aliases || []).some((alias) => containsAlias(haystack, alias)))) return true;
+      return false;
+    }
+    function politicalFeed(feed) {
+      return (feed || []).filter((item) => itemLooksPolitical(item));
+    }
+    function editorialPoliticalFeed(feed) {
+      const strongPolitical = politicalFeed(feed).filter((item) => canonicalParty(item.party || "") !== "Oflokkat" || Object.keys(PARTY_LEADERS).some((party) => itemMatchesLeader(item, party)));
+      const balanced = sourceBalancedFeed(strongPolitical, 2);
+      return balanced.length ? balanced : strongPolitical;
+    }
+    function hydrateFeed(feed) {
+      return (feed || []).map((item, index) => {
+        const title = cleanDisplayText(item.title || "An titils");
+        const summary = cleanDisplayText(item.summary || "");
+        const party = resolveParty({ ...item, title, summary });
+        const topic = resolveTopic({ ...item, title, summary });
+        const sentiment = item.sentiment || inferSentiment(`${title} ${summary}`);
+        const source = item.source || "Unknown";
+        const publishedAt = item.publishedAt || new Date(Date.now() - index * 3600 * 1000).toISOString();
+        const velocity = item.velocity || (index % 3 === 0 ? "Mjog hratt" : index % 2 === 0 ? "Hratt" : "Midlungs");
+        const reach = item.reach || `${40 + index * 7}k`;
+        const engagements = item.engagements || `${2 + index}.${index % 10}k`;
+        return {
+          ...item,
+          id: item.id || `mention-${index}`,
+          title,
+          summary,
+          party,
+          topic,
+          sentiment,
+          source,
+          publishedAt,
+          velocity,
+          reach,
+          engagements,
+          url: item.url || "#",
+          impactScore: impactScore({ reach, engagements, velocity }),
+          author: item.author || source.replace(/\sRSS$/, "")
+        };
+      });
+    }
+    function buildDemoDashboard() {
+      const now = Date.now();
+      return {
+        feed: [
+          { title: "ESB umraeda tekur kipp eftir nyja stefnuyfirlysingu", summary: "Aukning i umradu um adild og samninga.", source: "RUV RSS", party: "Vidreisn", topic: "ESB", sentiment: "jakvaed", reach: "112k", engagements: "8.4k", velocity: "Mjog hratt", publishedAt: new Date(now - 25 * 60000).toISOString() },
+          { title: "Gagnryni a husnaedisadgerdum eykst a samfelagsmidlum", summary: "Leigjendur kalla eftir hraedari adgerdum.", source: "X / Twitter", party: "Samfylkingin", topic: "Husnaedismal", sentiment: "neikvaed", reach: "84k", engagements: "12.2k", velocity: "Hratt", publishedAt: new Date(now - 70 * 60000).toISOString() },
+          { title: "Sjalfstaedisflokkurinn faer mesta media-share i morgun", summary: "Sterk birting i innlendum frettamidlum.", source: "Visir RSS", party: "Sjalfstaedisflokkurinn", topic: "Efnahagsmal", sentiment: "hlutlaus", reach: "139k", engagements: "6.1k", velocity: "Hratt", publishedAt: new Date(now - 110 * 60000).toISOString() },
+          { title: "Orkumal trenda yfir fleiri rasir en i gaer", summary: "Umraedan hefur breidst yfir i video og netmidla.", source: "YouTube", party: "Framsoknarflokkurinn", topic: "Orkumal", sentiment: "blandad", reach: "65k", engagements: "14.7k", velocity: "Mjog hratt", publishedAt: new Date(now - 170 * 60000).toISOString() },
+          { title: "Heilbrigdismal knyja fram langa comment-thraedi a Reddit", summary: "Notendur bera saman bidlista og kostnad.", source: "Reddit", party: "Flokkur folksins", topic: "Heilbrigdismal", sentiment: "neikvaed", reach: "51k", engagements: "4.8k", velocity: "Midlungs", publishedAt: new Date(now - 250 * 60000).toISOString() },
+          { title: "Innflytjendamal hreyfa vid engagementi i kvold", summary: "Mikil deiling fylgir nyjum ummaelum.", source: "mbl.is RSS", party: "Midflokkurinn", topic: "Innflytjendamal", sentiment: "blandad", reach: "96k", engagements: "9.3k", velocity: "Hratt", publishedAt: new Date(now - 320 * 60000).toISOString() },
+          { title: "Skattamal vekja sterk vidbrogd hja atvinnulifinu", summary: "Umraedan er mest milli stjornmalamanna og fyrirtækjaeigenda.", source: "Heimildin RSS", party: "Sjalfstaedisflokkurinn", topic: "Skattamal", sentiment: "blandad", reach: "58k", engagements: "3.9k", velocity: "Midlungs", publishedAt: new Date(now - 420 * 60000).toISOString() },
+          { title: "Landbunadur byrjar ad sja nyja umradu um innlenda framleidslu", summary: "Baendur kalla eftir skyrari stefnu.", source: "Baendabladid RSS", party: "Framsoknarflokkurinn", topic: "Landbunadur", sentiment: "jakvaed", reach: "34k", engagements: "2.1k", velocity: "Midlungs", publishedAt: new Date(now - 520 * 60000).toISOString() },
+          { title: "Vinstri graen bregdast vid nyju frumvarpi i loftslagsmalum", summary: "Formadur flokksins leggur aherslu a græn skref i orkuskiptum.", source: "Mannlif RSS", party: "Vinstrihreyfingin - graent frambod", topic: "Orkumal", sentiment: "jakvaed", reach: "29k", engagements: "2.8k", velocity: "Hratt", publishedAt: new Date(now - 610 * 60000).toISOString() },
+          { title: "Piratar kalla eftir meiri gagnsaei i opinberum kerfum", summary: "Ný umræða kviknaði eftir innlegg um rafræna stjórnsýslu.", source: "DV RSS", party: "Piratar", topic: "Menntamal", sentiment: "blandad", reach: "33k", engagements: "3.2k", velocity: "Hratt", publishedAt: new Date(now - 700 * 60000).toISOString() }
+        ],
+        rssSources: [
+          { name: "RUV", status: "Tengt", cadence: "15 min" },
+          { name: "Visir", status: "Tengt", cadence: "15 min" },
+          { name: "mbl.is", status: "Tengt", cadence: "15 min" }
+        ],
+        socialSources: [
+          { name: "X / Twitter", platform: "X", status: "Takmarkad" },
+          { name: "YouTube", platform: "YouTube", status: "Tengt" },
+          { name: "Reddit", platform: "Reddit", status: "Tengt" }
+        ],
+        polls: [
+          {
+            source: "Maskina",
+            status: "Tengt",
+            publishedAt: new Date(now - 86400000).toISOString(),
+            parties: [
+              { party: "Sjalfstaedisflokkurinn", percentage: 21.4 },
+              { party: "Samfylkingin", percentage: 20.1 },
+              { party: "Vidreisn", percentage: 13.2 },
+              { party: "Framsoknarflokkurinn", percentage: 9.4 },
+              { party: "Flokkur folksins", percentage: 8.2 },
+              { party: "Midflokkurinn", percentage: 7.8 },
+              { party: "Vinstrihreyfingin - graent frambod", percentage: 5.3 },
+              { party: "Piratar", percentage: 6.1 }
+            ]
+          }
+        ]
+      };
+    }
+    function deriveDashboard(rawDashboard) {
+      const feed = hydrateFeed(rawDashboard.feed || []);
+      const partyMap = new Map();
+      const topicMap = new Map();
+      const sourceMap = new Map();
+      const sentimentTotals = { positive: 0, negative: 0, mixed: 0, neutral: 0 };
+      let totalReach = 0;
+      let totalEngagement = 0;
+
+      feed.forEach((item) => {
+        const party = partyMap.get(item.party) || { name: item.party, mentions: 0, positiveHits: 0 };
+        party.mentions += 1;
+        if (item.sentiment === "jakvaed") party.positiveHits += 1;
+        partyMap.set(item.party, party);
+        topicMap.set(item.topic, (topicMap.get(item.topic) || 0) + 1);
+        sourceMap.set(item.source, (sourceMap.get(item.source) || 0) + 1);
+        if (item.sentiment === "jakvaed") sentimentTotals.positive += 1;
+        else if (item.sentiment === "neikvaed") sentimentTotals.negative += 1;
+        else if (item.sentiment === "blandad") sentimentTotals.mixed += 1;
+        else sentimentTotals.neutral += 1;
+        totalReach += toNumber(item.reach);
+        totalEngagement += toNumber(item.engagements);
+      });
+
+      const topics = [...topicMap.entries()].map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value);
+      const parties = [...partyMap.values()].map((party) => ({ name: party.name, mentions: party.mentions, sentiment: party.mentions ? Math.round((party.positiveHits / party.mentions) * 100) : 0, trend: party.mentions > 2 ? "+12%" : "+4%" })).sort((a, b) => b.mentions - a.mentions);
+      const channelBreakdown = [...sourceMap.entries()].map(([label, value]) => ({ label, value })).sort((a, b) => b.value - a.value);
+      const alerts = [];
+      if (topics[0]) alerts.push({ label: `${topics[0].label} tekur yfir umradu`, severity: "High", channel: "Cross-channel" });
+      const topMention = [...feed].sort((a, b) => b.impactScore - a.impactScore)[0];
+      if (topMention) alerts.push({ label: `Staersta signal nu fra ${topMention.source}`, severity: "Medium", channel: topMention.topic });
+      if (sentimentTotals.negative > sentimentTotals.positive) alerts.push({ label: "Neikvaed umraeda maelist haerri en jakvaed", severity: "High", channel: "Sentiment" });
+      const polls = Array.isArray(rawDashboard.polls) ? rawDashboard.polls : [];
+      const pollAverage = Array.isArray(rawDashboard.pollAverage) ? rawDashboard.pollAverage : polls.flatMap((poll) => poll.parties || []).slice(0, 6);
+      const seatProjection = Array.isArray(rawDashboard.seatProjection) ? rawDashboard.seatProjection : pollAverage.slice(0, 6).map((row) => ({ party: row.party, seats: Math.round((row.percentage / 100) * 63) }));
+      const forecastTimeline = Array.isArray(rawDashboard.forecastTimeline) ? rawDashboard.forecastTimeline : polls.map((poll) => ({ source: poll.source, publishedAt: poll.publishedAt, leader: poll.parties?.[0]?.party || "", leaderValue: poll.parties?.[0]?.percentage || 0 }));
+      return {
+        ...baseDashboard(),
+        ...rawDashboard,
+        feed,
+        parties,
+        topics,
+        alerts,
+        channelBreakdown,
+        keywords: topics.slice(0, 8).map((item) => item.label),
+        polls,
+        pollAverage,
+        forecastTimeline,
+        seatProjection,
+        stats: [
+          { label: "Mentions", value: formatNumber(feed.length) },
+          { label: "Estimated reach", value: `${formatNumber(totalReach)}k` },
+          { label: "Engagement", value: `${formatNumber(totalEngagement)}k` },
+          { label: "Topics tracked", value: formatNumber(topics.length) },
+          { label: "Active alerts", value: formatNumber(alerts.length) }
+        ],
+        sentimentTotals
+      };
+    }
+    async function fetchDashboard() {
+      const response = await fetch(API_URL, { method: "GET", mode: "cors", cache: "no-store" });
+      if (!response.ok) throw new Error(`API villa ${response.status}`);
+      return response.json();
+    }
+    function filteredFeed() {
+      const query = stripAccents(state.search);
+      return state.dashboard.feed.filter((item) => {
+        const hay = stripAccents([item.title, item.summary, item.party, item.topic, item.source].join(" "));
+        const matchesSearch = !query || hay.includes(query);
+        const matchesParty = itemMatchesParty(item, state.selectedParty);
+        const matchesTopic = itemMatchesTopic(item, state.selectedTopic);
+        const matchesMember = itemMatchesMember(item, state.selectedMember);
+        const matchesSource = state.selectedSource === "all" || item.source === state.selectedSource;
+        const matchesSentiment = state.selectedSentiment === "all" || item.sentiment === state.selectedSentiment;
+        const matchesMode = state.queryMode === "all" || item.source.toLowerCase().includes(state.queryMode.toLowerCase());
+        return matchesSearch && matchesParty && matchesTopic && matchesMember && matchesSource && matchesSentiment && matchesMode;
+      }).sort((a, b) => {
+        if (state.sortBy === "latest") return new Date(b.publishedAt) - new Date(a.publishedAt);
+        if (state.sortBy === "engagement") return toNumber(b.engagements) - toNumber(a.engagements);
+        return b.impactScore - a.impactScore;
+      });
+    }
+    function selectedMention(feed) {
+      return feed.find((item) => item.id === state.selectedMentionId) || feed[0] || null;
+    }
+    function timelineData(feed) {
+      const buckets = [];
+      for (let i = 6; i >= 0; i -= 1) {
+        const date = new Date();
+        date.setHours(0, 0, 0, 0);
+        date.setDate(date.getDate() - i);
+        buckets.push({ key: date.toISOString().slice(0, 10), label: date.toLocaleDateString("is-IS", { weekday: "short" }), count: 0 });
+      }
+      feed.forEach((item) => {
+        const key = new Date(item.publishedAt).toISOString().slice(0, 10);
+        const bucket = buckets.find((entry) => entry.key === key);
+        if (bucket) bucket.count += 1;
+      });
+      return buckets;
+    }
+    function renderMetricCard(stat, accent) {
+      return `<div class="rounded-[28px] border border-[#d7e3fb] bg-white p-5 shadow-[0_18px_50px_rgba(0,37,140,0.08)]"><div class="text-xs uppercase tracking-[0.24em] text-[#5b7397]">${escapeHtml(stat.label)}</div><div class="mt-3 flex items-end justify-between gap-4"><div class="text-3xl font-semibold text-[#081c40]">${escapeHtml(stat.value)}</div><div class="rounded-full px-3 py-1 text-xs font-semibold ${accent}">Live</div></div></div>`;
+    }
+    function renderBarChart(items, colorClass) {
+      if (!items.length) return `<div class="text-sm text-slate-500">Engin gögn til að birta enn.</div>`;
+      const max = Math.max(...items.map((item) => item.value), 1);
+      return items.slice(0, 6).map((item) => `<div class="space-y-1.5"><div class="flex items-center justify-between gap-4 text-sm"><span class="font-medium text-[#16315f]">${escapeHtml(item.label)}</span><span class="text-[#60779a]">${escapeHtml(String(item.value))}</span></div><div class="h-2.5 overflow-hidden rounded-full bg-[#dfe8f8]"><div class="h-full rounded-full ${colorClass}" style="width:${Math.max(10, Math.round((item.value / max) * 100))}%"></div></div></div>`).join("");
+    }
+    function renderTimeline(feed) {
+      const data = timelineData(feed);
+      const max = Math.max(...data.map((item) => item.count), 1);
+      return `<div class="flex h-56 items-end gap-4">${data.map((item) => { const height = Math.max(14, Math.round((item.count / max) * 180)); return `<div class="flex flex-1 flex-col items-center gap-3"><div class="text-xs font-semibold text-[#16315f]">${escapeHtml(String(item.count))}</div><div class="flex w-full items-end justify-center rounded-t-[20px] bg-gradient-to-t from-[#1446dc] via-[#3a8dde] to-[#8ebeff]" style="height:${height}px"></div><div class="text-xs font-medium text-[#60779a]">${escapeHtml(item.label)}</div></div>`; }).join("")}</div>`;
+    }
+    function renderSentimentDonut(totals) {
+      const total = totals.positive + totals.negative + totals.mixed + totals.neutral || 1;
+      const positivePct = Math.round((totals.positive / total) * 100);
+      const negativePct = Math.round((totals.negative / total) * 100);
+      const mixedPct = Math.round((totals.mixed / total) * 100);
+      const neutralPct = Math.max(0, 100 - positivePct - negativePct - mixedPct);
+      return `<div class="flex items-center gap-6"><div class="relative h-36 w-36 rounded-full" style="background: conic-gradient(#10b981 0 ${positivePct}%, #fb7185 ${positivePct}% ${positivePct + negativePct}%, #f59e0b ${positivePct + negativePct}% ${positivePct + negativePct + mixedPct}%, #94a3b8 ${positivePct + negativePct + mixedPct}% 100%);"><div class="absolute inset-5 rounded-full bg-white"></div><div class="absolute inset-0 flex items-center justify-center text-center"><div><div class="text-2xl font-semibold text-slate-900">${total}</div><div class="text-xs uppercase tracking-[0.24em] text-slate-400">mentions</div></div></div></div><div class="space-y-3 text-sm"><div class="flex items-center gap-3"><span class="h-3 w-3 rounded-full bg-emerald-500"></span><span>Jákvætt ${positivePct}%</span></div><div class="flex items-center gap-3"><span class="h-3 w-3 rounded-full bg-rose-400"></span><span>Neikvætt ${negativePct}%</span></div><div class="flex items-center gap-3"><span class="h-3 w-3 rounded-full bg-amber-400"></span><span>Blandað ${mixedPct}%</span></div><div class="flex items-center gap-3"><span class="h-3 w-3 rounded-full bg-slate-400"></span><span>Hlutlaust ${neutralPct}%</span></div></div></div>`;
+    }
+    function renderPollList(polls) {
+      if (!polls.length) return `<div class="text-sm text-slate-500">Engin könnunargögn enn.</div>`;
+      return polls.map((poll) => {
+        const eligibleParties = (poll.parties || []).filter((row) => Number(row.percentage || 0) >= 5);
+        const eligibleTotal = eligibleParties.reduce((sum, row) => sum + Number(row.percentage || 0), 0) || 1;
+        return `<div class="rounded-2xl border border-slate-200 bg-white p-4"><div class="flex items-center justify-between gap-3"><div><div class="font-semibold text-slate-900">${escapeHtml(poll.source || "Könnun")}</div><div class="mt-1 text-xs text-slate-500">${escapeHtml(poll.status || "Óþekkt staða")} ${poll.publishedAt ? `• ${escapeHtml(formatRelative(poll.publishedAt))}` : ""}</div></div></div><div class="mt-4"><div class="mb-3 grid grid-cols-[minmax(0,1fr)_72px_72px] gap-6 text-xs font-semibold uppercase tracking-[0.18em] text-slate-400"><span>Flokkur</span><span class="text-right">%</span><span class="text-right">Sæti</span></div><div class="space-y-2.5">${(poll.parties || []).map((row) => { const percentage = Number(row.percentage || 0); const seats = percentage >= 5 ? Math.round((percentage / eligibleTotal) * 63) : 0; return `<div class="grid grid-cols-[minmax(0,1fr)_72px_72px] items-center gap-6 text-sm"><span class="text-slate-700">${escapeHtml(displayLabel(row.party))}</span><span class="text-right font-semibold text-slate-900">${escapeHtml(String(row.percentage))}%</span><span class="text-right font-semibold ${seats > 0 ? "text-[#1446dc]" : "text-slate-300"}">${seats}</span></div>`; }).join("")}</div><div class="mt-4 text-xs text-slate-400">Sætaspá miðast við 5% þröskuld og hlutfallslega skiptingu 63 þingsæta.</div></div></div>`;
+      }).join("");
+    }
+    function renderSeatProjection(rows) {
+      if (!rows.length) return `<div class="text-sm text-slate-500">Engin þingsætaspá enn.</div>`;
+      const max = Math.max(...rows.map((row) => row.seats), 1);
+      return rows.slice(0, 6).map((row) => `<div class="space-y-1"><div class="flex items-center justify-between gap-4 text-sm"><span class="font-medium text-slate-700">${escapeHtml(displayLabel(row.party))}</span><span class="text-slate-500">${escapeHtml(String(row.seats))} sæti</span></div><div class="h-2 overflow-hidden rounded-full bg-slate-200"><div class="h-full rounded-full bg-gradient-to-r from-emerald-400 to-teal-300" style="width:${Math.max(10, Math.round((row.seats / max) * 100))}%"></div></div></div>`).join("");
+    }
+    function renderBenchmarkPill(label, value) {
+      return `<div class="min-w-0 rounded-2xl border border-[#d7e3fb] bg-[#f7faff] p-3"><div class="break-words text-[10px] uppercase tracking-[0.14em] text-[#6f86a8]">${escapeHtml(label)}</div><div class="mt-2 text-xl font-semibold text-[#081c40]">${escapeHtml(String(value))}</div></div>`;
+    }
+    function renderBenchmarkList(items, emptyText) {
+      if (!items.length) return `<div class="text-sm text-slate-400">${escapeHtml(emptyText)}</div>`;
+      return `<div class="space-y-2">${items.map((item) => `<div class="flex items-center justify-between gap-4 text-sm"><span class="text-slate-700">${escapeHtml(displayLabel(item.label))}</span><span class="font-semibold text-[#081c40]">${escapeHtml(String(item.value))}</span></div>`).join("")}</div>`;
+    }
+    function renderBenchmarkCard(benchmark, accentClass) {
+      const sentimentTotal = benchmark.mentions || 1;
+      const sentimentRows = [
+        { label: "Jákvætt", value: percent(benchmark.sentiment.jakvaed || 0, sentimentTotal) },
+        { label: "Neikvætt", value: percent(benchmark.sentiment.neikvaed || 0, sentimentTotal) },
+        { label: "Blandað", value: percent(benchmark.sentiment.blandad || 0, sentimentTotal) },
+        { label: "Hlutlaust", value: percent(benchmark.sentiment.hlutlaus || 0, sentimentTotal) }
+      ];
+      return `<div class="rounded-[28px] border border-[#d7e3fb] bg-white p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <div class="text-xs uppercase tracking-[0.22em] text-[#6f86a8]">Benchmark</div>
+            <h3 class="mt-2 text-2xl font-semibold text-[#081c40]">${escapeHtml(displayLabel(benchmark.party))}</h3>
+          </div>
+          <div class="rounded-full px-3 py-1 text-xs font-semibold ${accentClass}">${benchmark.growth >= 0 ? "+" : ""}${escapeHtml(String(benchmark.growth))}% growth</div>
+        </div>
+        <div class="mt-5 grid gap-3 sm:grid-cols-3">
+          ${renderBenchmarkPill("Mentions", formatNumber(benchmark.mentions))}
+          ${renderBenchmarkPill("Share of voice", benchmark.shareOfVoice)}
+          ${renderBenchmarkPill("Growth 7d", `${benchmark.growth >= 0 ? "+" : ""}${benchmark.growth}%`)}
+        </div>
+        <div class="mt-5 grid gap-5 lg:grid-cols-3">
+          <div>
+            <div class="text-xs uppercase tracking-[0.18em] text-[#6f86a8]">Sentiment</div>
+            <div class="mt-3 space-y-2">${sentimentRows.map((row) => `<div class="flex items-center justify-between gap-4 text-sm"><span class="text-slate-700">${escapeHtml(row.label)}</span><span class="font-semibold text-[#081c40]">${escapeHtml(row.value)}</span></div>`).join("")}</div>
+          </div>
+          <div>
+            <div class="text-xs uppercase tracking-[0.18em] text-[#6f86a8]">Top topics</div>
+            <div class="mt-3">${renderBenchmarkList(benchmark.topTopics, "Engin málefni enn.")}</div>
+          </div>
+          <div>
+            <div class="text-xs uppercase tracking-[0.18em] text-[#6f86a8]">Top sources</div>
+            <div class="mt-3">${renderBenchmarkList(benchmark.topSources, "Engar heimildir enn.")}</div>
+          </div>
+        </div>
+      </div>`;
+    }
+    function renderLeaderBenchmarkCard(benchmark, accentClass) {
+      if (!benchmark) return `<div class="text-sm text-slate-500">Vantar leiðtogagögn.</div>`;
+      const sentimentTotal = benchmark.mentions || 1;
+      const sentimentRows = [
+        { label: "Jákvætt", value: percent(benchmark.sentiment.jakvaed || 0, sentimentTotal) },
+        { label: "Neikvætt", value: percent(benchmark.sentiment.neikvaed || 0, sentimentTotal) },
+        { label: "Blandað", value: percent(benchmark.sentiment.blandad || 0, sentimentTotal) },
+        { label: "Hlutlaust", value: percent(benchmark.sentiment.hlutlaus || 0, sentimentTotal) }
+      ];
+      return `<div class="rounded-[28px] border border-[#d7e3fb] bg-white p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <div class="text-xs uppercase tracking-[0.22em] text-[#6f86a8]">Leiðtogi</div>
+            <h3 class="mt-2 text-2xl font-semibold text-[#081c40]">${escapeHtml(displayLabel(benchmark.leaderName))}</h3>
+            <div class="mt-1 text-sm text-slate-500">${escapeHtml(displayLabel(benchmark.party))}</div>
+          </div>
+          <div class="rounded-full px-3 py-1 text-xs font-semibold ${accentClass}">${benchmark.growth >= 0 ? "+" : ""}${escapeHtml(String(benchmark.growth))}% growth</div>
+        </div>
+        <div class="mt-5 grid gap-3 sm:grid-cols-3">
+          ${renderBenchmarkPill("Mentions", formatNumber(benchmark.mentions))}
+          ${renderBenchmarkPill("Share of voice", benchmark.shareOfVoice)}
+          ${renderBenchmarkPill("Growth 7d", `${benchmark.growth >= 0 ? "+" : ""}${benchmark.growth}%`)}
+        </div>
+        <div class="mt-5 grid gap-5 lg:grid-cols-3">
+          <div>
+            <div class="text-xs uppercase tracking-[0.18em] text-[#6f86a8]">Sentiment</div>
+            <div class="mt-3 space-y-2">${sentimentRows.map((row) => `<div class="flex items-center justify-between gap-4 text-sm"><span class="text-slate-700">${escapeHtml(row.label)}</span><span class="font-semibold text-[#081c40]">${escapeHtml(row.value)}</span></div>`).join("")}</div>
+          </div>
+          <div>
+            <div class="text-xs uppercase tracking-[0.18em] text-[#6f86a8]">Top topics</div>
+            <div class="mt-3">${renderBenchmarkList(benchmark.topTopics, "Engin málefni enn.")}</div>
+          </div>
+          <div>
+            <div class="text-xs uppercase tracking-[0.18em] text-[#6f86a8]">Top sources</div>
+            <div class="mt-3">${renderBenchmarkList(benchmark.topSources, "Engar heimildir enn.")}</div>
+          </div>
+        </div>
+      </div>`;
+    }
+    function weekSummary(feed) {
+      const recent = feed.filter((item) => Date.now() - new Date(item.publishedAt).getTime() <= 7 * 86400000);
+      const topicMap = new Map();
+      const partyMap = new Map();
+      const sourceMap = new Map();
+      recent.forEach((item) => {
+        topicMap.set(item.topic, (topicMap.get(item.topic) || 0) + 1);
+        partyMap.set(item.party, (partyMap.get(item.party) || 0) + 1);
+        sourceMap.set(item.source, (sourceMap.get(item.source) || 0) + 1);
+      });
+      return {
+        mentions: recent.length,
+        topTopic: [...topicMap.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || "Annad",
+        topParty: [...partyMap.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || "Oflokkat",
+        topSource: [...sourceMap.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || "Engin heimild",
+        latest: [...recent].sort((a, b) => new Date(b.publishedAt) - new Date(a.publishedAt)).slice(0, 3)
+      };
+    }
+    function voicesInFocus(feed) {
+      const voiceMap = new Map();
+      Object.entries(PARTY_LEADERS).forEach(([party, leader]) => {
+        const leaderBenchmark = benchmarkForLeader(party, feed);
+        if (leaderBenchmark) {
+          voiceMap.set(leader.name, {
+            name: leader.name,
+            party,
+            mentions: leaderBenchmark.mentions,
+            shareOfVoice: leaderBenchmark.shareOfVoice,
+            growth: leaderBenchmark.growth,
+            topSource: leaderBenchmark.topSources[0]?.label || "Engin heimild"
+          });
+        }
+      });
+      return [...voiceMap.values()].sort((a, b) => b.mentions - a.mentions).slice(0, 4);
+    }
+    function renderWeekSummary(summary) {
+      return `<div class="rounded-[32px] border border-[#d7e3fb] bg-white p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <div class="text-xs uppercase tracking-[0.24em] text-[#5b7397]">Vikuyfirlit</div>
+            <h2 class="mt-1 text-2xl font-semibold text-[#081c40]">Hvað stóð upp úr síðustu 7 daga</h2>
+          </div>
+          <div class="rounded-full bg-[#dceaff] px-3 py-1 text-xs font-semibold text-[#1446dc]">${summary.mentions} mentions</div>
+        </div>
+        <div class="mt-5 grid gap-3 md:grid-cols-3">
+          ${renderBenchmarkPill("Mest rætt", displayLabel(summary.topTopic))}
+          ${renderBenchmarkPill("Mest í fókus", displayLabel(summary.topParty))}
+          ${renderBenchmarkPill("Stærsta heimild", summary.topSource)}
+        </div>
+        <div class="mt-5 space-y-3">
+          ${summary.latest.map((item) => `<div class="rounded-2xl border border-slate-200 bg-[#f9fbff] p-4"><div class="text-xs uppercase tracking-[0.18em] text-slate-400">${escapeHtml(formatDateTime(item.publishedAt))}</div><div class="mt-2 font-semibold text-[#081c40]">${escapeHtml(item.title)}</div><div class="mt-1 text-sm text-slate-600">${escapeHtml(displayLabel(item.party))} · ${escapeHtml(displayLabel(item.topic))} · ${escapeHtml(item.source)}</div></div>`).join("")}
+        </div>
+      </div>`;
+    }
+    function renderVoicesInFocus(items) {
+      return `<div class="rounded-[32px] border border-[#d7e3fb] bg-white p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]">
+        <div class="text-xs uppercase tracking-[0.24em] text-[#5b7397]">Raddir í fókus</div>
+        <h2 class="mt-1 text-2xl font-semibold text-[#081c40]">Leiðtogar og helstu raddir</h2>
+        <div class="mt-5 grid gap-4 md:grid-cols-2">
+          ${items.map((item) => `<div class="rounded-2xl border border-slate-200 bg-[#f9fbff] p-4"><div class="flex items-start justify-between gap-4"><div><div class="font-semibold text-[#081c40]">${escapeHtml(item.name)}</div><div class="mt-1 text-sm text-slate-500">${escapeHtml(displayLabel(item.party))}</div></div><div class="rounded-full bg-[#e8f2ff] px-3 py-1 text-xs font-semibold text-[#00258c]">${escapeHtml(item.shareOfVoice)}</div></div><div class="mt-4 grid grid-cols-3 gap-3 text-sm"><div><div class="text-xs uppercase tracking-[0.16em] text-slate-400">Mentions</div><div class="mt-1 font-semibold text-[#081c40]">${escapeHtml(String(item.mentions))}</div></div><div><div class="text-xs uppercase tracking-[0.16em] text-slate-400">Growth</div><div class="mt-1 font-semibold text-[#081c40]">${item.growth >= 0 ? "+" : ""}${escapeHtml(String(item.growth))}%</div></div><div><div class="text-xs uppercase tracking-[0.16em] text-slate-400">Heimild</div><div class="mt-1 font-semibold text-[#081c40]">${escapeHtml(item.topSource)}</div></div></div></div>`).join("")}
+        </div>
+      </div>`;
+    }
+    function renderMethodologyCard() {
+      return `<div class="rounded-[32px] border border-[#d7e3fb] bg-[linear-gradient(180deg,_#ffffff,_#f7faff)] p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]">
+        <div class="text-xs uppercase tracking-[0.24em] text-[#5b7397]">Hvernig vaktin vinnur</div>
+        <h2 class="mt-1 text-2xl font-semibold text-[#081c40]">Aðferðafræði í stuttu máli</h2>
+        <div class="mt-5 grid gap-4 md:grid-cols-3">
+          <div class="rounded-2xl border border-slate-200 bg-white p-4">
+            <div class="text-xs uppercase tracking-[0.18em] text-slate-400">1. Söfnun</div>
+            <p class="mt-2 text-sm leading-6 text-slate-600">Síðan sækir fréttir, RSS strauma og opinberar rásir og sameinar í einn lifandi straum.</p>
+          </div>
+          <div class="rounded-2xl border border-slate-200 bg-white p-4">
+            <div class="text-xs uppercase tracking-[0.18em] text-slate-400">2. Flokkun</div>
+            <p class="mt-2 text-sm leading-6 text-slate-600">Efni er flokkað eftir flokkum, leiðtogum og málefnum með aliasum, nöfnum og textagreiningu.</p>
+          </div>
+          <div class="rounded-2xl border border-slate-200 bg-white p-4">
+            <div class="text-xs uppercase tracking-[0.18em] text-slate-400">3. Greining</div>
+            <p class="mt-2 text-sm leading-6 text-slate-600">Sýnileiki, sentiment, vöxtur og heimildir eru dregin saman í samanburði, vikuyfirlit og viðvaranir.</p>
+          </div>
+        </div>
+      </div>`;
+    }
+    function renderCollectionOverview(feed) {
+      if (!feed.length) return `<div class="rounded-[32px] border border-[#d7e3fb] bg-[linear-gradient(180deg,_#ffffff,_#f7faff)] p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]"><div class="text-xs uppercase tracking-[0.24em] text-[#5b7397]">Í safninu</div><h2 class="mt-1 text-2xl font-semibold text-[#081c40]">Rauntímagögn í einni sýn</h2><div class="mt-6 rounded-[24px] border border-dashed border-slate-300 bg-white p-6 text-sm text-slate-500">Engin skýr pólitísk atriði fundust í núverandi straumi.</div></div>`;
+      const rssCount = feed.filter((item) => /rss/i.test(item.source)).length;
+      const socialCount = feed.length - rssCount;
+      const leaderCount = voicesInFocus(feed).filter((item) => item.mentions > 0).length;
+      const activeTopicCount = [...new Set(feed.map((item) => item.topic))].length;
+      const topSources = [...new Map(feed.map((item) => [item.source, 0])).entries()]
+        .map(([source]) => ({ source, count: feed.filter((item) => item.source === source).length }))
+        .sort((a, b) => b.count - a.count)
+        .slice(0, 4);
+      const strongestParty = [...new Map(feed.map((item) => [item.party, 0])).entries()]
+        .map(([party]) => ({ party, count: feed.filter((item) => item.party === party).length }))
+        .sort((a, b) => b.count - a.count)
+        .find((entry) => entry.party && entry.party !== "Oflokkat");
+      const strongestTopic = [...new Map(feed.map((item) => [item.topic, 0])).entries()]
+        .map(([topic]) => ({ topic, count: feed.filter((item) => item.topic === topic).length }))
+        .sort((a, b) => b.count - a.count)[0];
+      return `<div class="rounded-[32px] border border-[#d7e3fb] bg-[linear-gradient(180deg,_#ffffff,_#f7faff)] p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <div class="text-xs uppercase tracking-[0.24em] text-[#5b7397]">Í safninu</div>
+            <h2 class="mt-1 text-2xl font-semibold text-[#081c40]">Rauntímagögn í einni sýn</h2>
+          </div>
+          <div class="rounded-full bg-[#081c40] px-3 py-1 text-xs font-semibold text-white">${feed.length} atriði</div>
+        </div>
+        <div class="mt-5 grid gap-4 md:grid-cols-[0.95fr_1.05fr]">
+          <div class="grid gap-4 sm:grid-cols-2">
+            ${renderBenchmarkPill("Fréttir / RSS", formatNumber(rssCount))}
+            ${renderBenchmarkPill("Samfélagsrásir", formatNumber(socialCount))}
+            ${renderBenchmarkPill("Raddir í fókus", formatNumber(leaderCount))}
+            ${renderBenchmarkPill("Virk málefni", formatNumber(activeTopicCount))}
+          </div>
+          <div class="rounded-[24px] border border-slate-200 bg-white p-5">
+            <div class="text-xs uppercase tracking-[0.18em] text-slate-400">Staðan núna</div>
+            <div class="mt-4 space-y-4">
+              <div>
+                <div class="text-sm text-slate-500">Mest í fókus</div>
+                <div class="mt-1 text-lg font-semibold text-[#081c40]">${escapeHtml(displayLabel(strongestParty?.party || "Óflokkað"))}</div>
+              </div>
+              <div>
+                <div class="text-sm text-slate-500">Mest rætt málefni</div>
+                <div class="mt-1 text-lg font-semibold text-[#081c40]">${escapeHtml(displayLabel(strongestTopic?.topic || "Annað"))}</div>
+              </div>
+              <div>
+                <div class="text-sm text-slate-500">Tímabil</div>
+                <div class="mt-1 text-lg font-semibold text-[#081c40]">Síðustu 14 dagar</div>
+              </div>
+              <div>
+                <div class="text-sm text-slate-500">Helstu heimildir</div>
+                <div class="mt-2 flex flex-wrap gap-2">
+                  ${topSources.map((entry) => `<span class="rounded-full border border-slate-200 bg-[#f7faff] px-2.5 py-1 text-xs font-semibold text-[#16315f]">${escapeHtml(shortSourceLabel(entry.source))}</span>`).join("")}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>`;
+    }
+    function renderLatestAnalysis(feed, selected) {
+      if (!feed.length) return `<div class="rounded-[32px] border border-[#d7e3fb] bg-white p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]"><div class="text-xs uppercase tracking-[0.24em] text-[#5b7397]">Nýjustu greiningar</div><h2 class="mt-1 text-2xl font-semibold text-[#081c40]">Helstu merki úr straumnum</h2><div class="mt-6 rounded-[24px] border border-dashed border-slate-300 bg-[#f9fbff] p-6 text-sm text-slate-500">Engin pólitísk atriði fundust til að birta hér núna.</div></div>`;
+      const items = [...feed].slice(0, 3);
+      return `<div class="rounded-[32px] border border-[#d7e3fb] bg-white p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]">
+        <div class="flex items-start justify-between gap-4">
+          <div>
+            <div class="text-xs uppercase tracking-[0.24em] text-[#5b7397]">Nýjustu greiningar</div>
+            <h2 class="mt-1 text-2xl font-semibold text-[#081c40]">Helstu merki úr straumnum</h2>
+          </div>
+          ${selected && itemLooksPolitical(selected) ? `<div class="rounded-full bg-[#dceaff] px-3 py-1 text-xs font-semibold text-[#1446dc]">${escapeHtml(displayLabel(selected.party))}</div>` : ""}
+        </div>
+        <div class="mt-5 grid gap-4 lg:grid-cols-[1.2fr_0.8fr]">
+          <article class="rounded-[24px] border border-slate-200 bg-[#f9fbff] p-5">
+            <div class="text-xs uppercase tracking-[0.18em] text-slate-400">${escapeHtml(formatDateTime(items[0].publishedAt))}</div>
+            <h3 class="mt-3 text-2xl font-semibold text-[#081c40]">${escapeHtml(items[0].title)}</h3>
+            <p class="mt-3 text-sm leading-7 text-slate-600">${escapeHtml(truncateWords(items[0].summary, 60).text)}</p>
+            <div class="mt-4 flex flex-wrap gap-3 text-xs text-slate-500">
+              <span>${escapeHtml(displayLabel(items[0].party))}</span>
+              <span>${escapeHtml(displayLabel(items[0].topic))}</span>
+              <span>${escapeHtml(items[0].source)}</span>
+            </div>
+          </article>
+          <div class="grid gap-4">
+            ${items.slice(1).map((item) => `<article class="rounded-[24px] border border-slate-200 bg-[#f9fbff] p-5">
+            <div class="text-xs uppercase tracking-[0.18em] text-slate-400">${escapeHtml(formatDateTime(item.publishedAt))}</div>
+            <h3 class="mt-3 text-xl font-semibold text-[#081c40]">${escapeHtml(item.title)}</h3>
+            <p class="mt-2 text-sm leading-6 text-slate-600">${escapeHtml(truncateWords(item.summary, 24).text)}</p>
+            <div class="mt-4 flex flex-wrap gap-3 text-xs text-slate-500">
+              <span>${escapeHtml(displayLabel(item.party))}</span>
+              <span>${escapeHtml(displayLabel(item.topic))}</span>
+              <span>${escapeHtml(item.source)}</span>
+            </div>
+          </article>`).join("")}
+          </div>
+        </div>
+      </div>`;
+    }
+    function render() {
+      const app = document.getElementById("app");
+      const feed = filteredFeed();
+      const visibleFeed = feed.slice(0, state.visibleFeedCount);
+      const selected = selectedMention(feed);
+      const sources = [...new Set([...state.dashboard.feed.map((item) => item.source), "VB", "BBC World", "POLITICO Europe"])].sort();
+      const parties = sortPartyOptions([...Object.keys(PARTY_ALIASES), ...state.dashboard.feed.map((item) => item.party), "Oflokkat"]);
+      const members = allTrackedMembers();
+      const benchmarkFeed = feedForBenchmark();
+      const benchmarkParties = parties.filter((party) => party !== "Oflokkat");
+      const comparePartyA = benchmarkParties.includes(state.comparePartyA) ? state.comparePartyA : benchmarkParties[0];
+      const comparePartyB = benchmarkParties.includes(state.comparePartyB) ? state.comparePartyB : benchmarkParties.find((party) => party !== comparePartyA) || benchmarkParties[0];
+      const benchmarkA = comparePartyA ? benchmarkForParty(comparePartyA, benchmarkFeed) : null;
+      const benchmarkB = comparePartyB ? benchmarkForParty(comparePartyB, benchmarkFeed) : null;
+      const compareLeaderA = benchmarkParties.includes(state.compareLeaderA) ? state.compareLeaderA : benchmarkParties[0];
+      const compareLeaderB = benchmarkParties.includes(state.compareLeaderB) ? state.compareLeaderB : benchmarkParties.find((party) => party !== compareLeaderA) || benchmarkParties[0];
+      const leaderBenchmarkA = compareLeaderA ? benchmarkForLeader(compareLeaderA, benchmarkFeed) : null;
+      const leaderBenchmarkB = compareLeaderB ? benchmarkForLeader(compareLeaderB, benchmarkFeed) : null;
+      const curatedPoliticalFeed = editorialPoliticalFeed(benchmarkFeed);
+      const summary = weekSummary(curatedPoliticalFeed);
+      const voices = voicesInFocus(curatedPoliticalFeed);
+      const topics = [...new Set(state.dashboard.feed.map((item) => item.topic))].sort();
+      const heroStatus = state.loading ? "Sæki lifandi gögn..." : state.usingDemoData ? "Sýni gagnvirka demo-strauma" : "Lifandi vöktun virk";
+
+      app.innerHTML = `
+        <div class="space-y-10">
+          <section class="overflow-hidden rounded-[36px] border border-[#0f2f78] bg-[#00258c] text-white shadow-[0_30px_90px_rgba(8,28,64,0.28)]">
+            <div class="grid gap-12 p-7 lg:grid-cols-[1.18fr_0.82fr] lg:p-10">
+              <div>
+                <div class="inline-flex rounded-full border border-[#6f9cf0] bg-[#081c40] px-3 py-1 text-xs font-semibold uppercase tracking-[0.26em] text-[#ffffff]">Sjálfstæðisvaktin</div>
+                <h1 class="mt-5 max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">Sjálfstæðisvaktin</h1>
+                <p class="mt-4 max-w-2xl text-sm leading-6 text-slate-300">Rauntíma yfirlit yfir umræðu, sentiment, trends, kannanir og helstu merki sem snerta Sjálfstæðisflokkinn.</p>
+                <div class="mt-6 flex flex-wrap gap-3">
+                  <button id="refreshBtn" class="rounded-full bg-[#3a8dde] px-4 py-2 text-sm font-semibold text-white">Endurlesa gögn</button>
+                  <button id="toggleAutoRefreshBtn" class="rounded-full border border-[#6f9cf0] bg-[#081c40] px-4 py-2 text-sm font-semibold text-white">${state.autoRefresh ? "Auto-refresh on" : "Auto-refresh off"}</button>
+                  <div class="rounded-full border border-[#6f9cf0] bg-[#081c40] px-4 py-2 text-sm text-white">${escapeHtml(heroStatus)}</div>
+                </div>
+              </div>
+              <div class="rounded-[32px] border border-[#2047a8] bg-[#081c40] p-6">
+                <div class="flex items-center justify-between gap-3"><div><div class="text-xs uppercase tracking-[0.24em] text-[#9bb6ea]">Monitor status</div><div class="mt-2 text-2xl font-semibold">Query Command Center</div></div><div class="rounded-full bg-[#3a8dde] px-3 py-1 text-xs font-semibold text-white">${state.lastUpdated ? formatRelative(state.lastUpdated) : "engin sync enn"}</div></div>
+                <div class="mt-5 grid gap-3 sm:grid-cols-2">
+                  <button data-mode="all" class="queryModeBtn rounded-2xl border px-4 py-3 text-left ${state.queryMode === "all" ? "border-[#3a8dde] bg-[#1446dc]" : "border-[#2047a8] bg-[#0c2358]"}"><div class="text-xs uppercase tracking-[0.22em] text-[#9bb6ea]">Mode</div><div class="mt-1 font-semibold">All channels</div></button>
+                  <button data-mode="rss" class="queryModeBtn rounded-2xl border px-4 py-3 text-left ${state.queryMode === "rss" ? "border-[#3a8dde] bg-[#1446dc]" : "border-[#2047a8] bg-[#0c2358]"}"><div class="text-xs uppercase tracking-[0.22em] text-[#9bb6ea]">Mode</div><div class="mt-1 font-semibold">News / RSS</div></button>
+                  <button data-mode="x" class="queryModeBtn rounded-2xl border px-4 py-3 text-left ${state.queryMode === "x" ? "border-[#3a8dde] bg-[#1446dc]" : "border-[#2047a8] bg-[#0c2358]"}"><div class="text-xs uppercase tracking-[0.22em] text-[#9bb6ea]">Mode</div><div class="mt-1 font-semibold">X / conversation</div></button>
+                  <button data-mode="youtube" class="queryModeBtn rounded-2xl border px-4 py-3 text-left ${state.queryMode === "youtube" ? "border-[#3a8dde] bg-[#1446dc]" : "border-[#2047a8] bg-[#0c2358]"}"><div class="text-xs uppercase tracking-[0.22em] text-[#9bb6ea]">Mode</div><div class="mt-1 font-semibold">Video / YouTube</div></button>
+                </div>
+              </div>
+            </div>
+          </section>
+          <section class="grid gap-6 md:grid-cols-2 xl:grid-cols-5">${state.dashboard.stats.map((stat, index) => renderMetricCard(stat, index % 2 === 0 ? "bg-[#dceaff] text-[#1446dc]" : "bg-[#e8f2ff] text-[#00258c]")).join("")}</section>
+          <section class="grid gap-8 xl:grid-cols-[0.95fr_1.05fr]">
+            ${renderCollectionOverview(curatedPoliticalFeed)}
+            ${renderLatestAnalysis(curatedPoliticalFeed, selected)}
+          </section>
+          <section class="rounded-[32px] border border-[#d7e3fb] bg-white p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]">
+            <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <div class="text-xs uppercase tracking-[0.24em] text-[#5b7397]">Compare / Benchmark</div>
+                <h2 class="mt-1 text-2xl font-semibold text-[#081c40]">Samanburður flokka hlið við hlið</h2>
+                <p class="mt-2 max-w-3xl text-sm text-[#60779a]">Ber saman share of voice, sentiment, growth, efstu málefni og helstu heimildir fyrir tvo flokka.</p>
+              </div>
+              <div class="grid gap-3 sm:grid-cols-2">
+                <select id="comparePartyA" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm">${benchmarkParties.map((party) => `<option value="${escapeHtml(party)}" ${comparePartyA === party ? "selected" : ""}>${escapeHtml(displayLabel(party))}</option>`).join("")}</select>
+                <select id="comparePartyB" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm">${benchmarkParties.map((party) => `<option value="${escapeHtml(party)}" ${comparePartyB === party ? "selected" : ""}>${escapeHtml(displayLabel(party))}</option>`).join("")}</select>
+              </div>
+            </div>
+            <div class="mt-6 grid gap-6 xl:grid-cols-2">
+              ${benchmarkA ? renderBenchmarkCard(benchmarkA, "bg-[#dceaff] text-[#1446dc]") : `<div class="text-sm text-slate-500">Vantar samanburðargögn.</div>`}
+              ${benchmarkB ? renderBenchmarkCard(benchmarkB, "bg-[#e8f2ff] text-[#00258c]") : `<div class="text-sm text-slate-500">Vantar samanburðargögn.</div>`}
+            </div>
+          </section>
+          <section class="rounded-[32px] border border-[#d7e3fb] bg-white p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]">
+            <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+              <div>
+                <div class="text-xs uppercase tracking-[0.24em] text-[#5b7397]">Leader Benchmark</div>
+                <h2 class="mt-1 text-2xl font-semibold text-[#081c40]">Samanburður formanna og umræðu</h2>
+                <p class="mt-2 max-w-3xl text-sm text-[#60779a]">Ber saman umræðu um formenn flokkanna sjálfa út frá nafnaumfjöllun í fréttum og straumum.</p>
+              </div>
+              <div class="grid gap-3 sm:grid-cols-2">
+                <select id="compareLeaderA" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm">${benchmarkParties.map((party) => `<option value="${escapeHtml(party)}" ${compareLeaderA === party ? "selected" : ""}>${escapeHtml(displayLabel(PARTY_LEADERS[party]?.name || party))}</option>`).join("")}</select>
+                <select id="compareLeaderB" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm">${benchmarkParties.map((party) => `<option value="${escapeHtml(party)}" ${compareLeaderB === party ? "selected" : ""}>${escapeHtml(displayLabel(PARTY_LEADERS[party]?.name || party))}</option>`).join("")}</select>
+              </div>
+            </div>
+            <div class="mt-6 grid gap-6 xl:grid-cols-2">
+              ${leaderBenchmarkA ? renderLeaderBenchmarkCard(leaderBenchmarkA, "bg-[#dceaff] text-[#1446dc]") : `<div class="text-sm text-slate-500">Vantar leiðtogagögn.</div>`}
+              ${leaderBenchmarkB ? renderLeaderBenchmarkCard(leaderBenchmarkB, "bg-[#e8f2ff] text-[#00258c]") : `<div class="text-sm text-slate-500">Vantar leiðtogagögn.</div>`}
+            </div>
+          </section>
+          <section class="grid gap-8 xl:grid-cols-[1.05fr_0.95fr]">
+            ${renderWeekSummary(summary)}
+            ${renderVoicesInFocus(voices)}
+          </section>
+          <section>
+            ${renderMethodologyCard()}
+          </section>
+      `;
+      app.innerHTML += `
+          <section class="grid gap-8 xl:grid-cols-[1.04fr_0.96fr]">
+            <div class="space-y-8">
+              <div class="rounded-[32px] border border-[#d7e3fb] bg-white p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]">
+                <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between"><div><div class="text-xs uppercase tracking-[0.24em] text-slate-400">Query builder</div><h2 class="mt-1 text-2xl font-semibold text-slate-900">Rauntíma umræða</h2></div><div class="flex flex-col gap-2 sm:flex-row"><input id="searchInput" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm" placeholder="Leita í mentions, topic eða flokki..." value="${escapeHtml(state.search)}" /><select id="sortSelect" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm"><option value="impact" ${state.sortBy === "impact" ? "selected" : ""}>Raða eftir áhrifum</option><option value="latest" ${state.sortBy === "latest" ? "selected" : ""}>Raða eftir nýjustu</option><option value="engagement" ${state.sortBy === "engagement" ? "selected" : ""}>Raða eftir virkni</option></select></div></div>
+                <div class="mt-4 grid gap-3 md:grid-cols-5"><select id="partySelect" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm"><option value="all">Allir flokkar</option>${parties.map((party) => `<option value="${escapeHtml(party)}" ${state.selectedParty === party ? "selected" : ""}>${escapeHtml(displayLabel(party))}</option>`).join("")}</select><select id="topicSelect" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm"><option value="all">Öll málefni</option>${topics.map((topic) => `<option value="${escapeHtml(topic)}" ${state.selectedTopic === topic ? "selected" : ""}>${escapeHtml(displayLabel(topic))}</option>`).join("")}</select><select id="memberSelect" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm"><option value="all">Allir þingmenn</option>${members.map((member) => `<option value="${escapeHtml(member)}" ${state.selectedMember === member ? "selected" : ""}>${escapeHtml(displayMemberName(member))}</option>`).join("")}</select><select id="sourceSelect" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm"><option value="all">Allar rásir</option>${sources.map((source) => `<option value="${escapeHtml(source)}" ${state.selectedSource === source ? "selected" : ""}>${escapeHtml(shortSourceLabel(source))}</option>`).join("")}</select><select id="sentimentSelect" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm"><option value="all">Allt sentiment</option><option value="jakvaed" ${state.selectedSentiment === "jakvaed" ? "selected" : ""}>Jákvætt</option><option value="neikvaed" ${state.selectedSentiment === "neikvaed" ? "selected" : ""}>Neikvætt</option><option value="blandad" ${state.selectedSentiment === "blandad" ? "selected" : ""}>Blandað</option><option value="hlutlaus" ${state.selectedSentiment === "hlutlaus" ? "selected" : ""}>Hlutlaust</option></select></div>
+                <div class="mt-4 flex flex-wrap gap-2">${state.dashboard.keywords.slice(0, 8).map((keyword) => `<button data-keyword="${escapeHtml(keyword)}" class="keywordBtn rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-xs font-semibold text-slate-700">#${escapeHtml(displayLabel(keyword))}</button>`).join("")}<button id="clearFiltersBtn" class="rounded-full border border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold text-slate-700">Hreinsa síur</button></div>
+                <div class="mt-8 space-y-6">
+                  <div class="space-y-3">${feed.length ? visibleFeed.map((item) => { const preview = truncateWords(item.summary, 100); const hasUrl = item.url && item.url !== "#"; return `<article class="rounded-[24px] border p-4 transition ${selected && selected.id === item.id ? "border-slate-950 bg-slate-950 text-white shadow-lg" : "border-slate-200 bg-white hover:border-slate-300"}"><button type="button" data-mention-id="${escapeHtml(item.id)}" class="mentionBtn block w-full text-left"><div class="flex flex-wrap items-center gap-2 text-xs font-medium ${selected && selected.id === item.id ? "text-slate-300" : "text-slate-500"}"><span class="rounded-full ${selected && selected.id === item.id ? "bg-white/10" : "bg-slate-100"} px-2.5 py-1">${escapeHtml(shortSourceLabel(item.source))}</span><span class="rounded-full ${selected && selected.id === item.id ? "bg-amber-300 text-slate-950" : "bg-amber-100 text-amber-700"} px-2.5 py-1">${escapeHtml(displayLabel(item.topic))}</span><span class="rounded-full px-2.5 py-1 ${sentimentClass(item.sentiment)}">${escapeHtml(displayLabel(item.sentiment))}</span><span>${escapeHtml(formatRelative(item.publishedAt))}</span><span>${escapeHtml(formatDateTime(item.publishedAt))}</span></div><div class="mt-3 text-base font-semibold leading-6">${escapeHtml(item.title)}</div><p class="mt-2 text-sm leading-6 ${selected && selected.id === item.id ? "text-slate-300" : "text-slate-600"}">${escapeHtml(preview.text)}</p><div class="mt-3 flex flex-wrap gap-4 text-xs ${selected && selected.id === item.id ? "text-slate-300" : "text-slate-500"}"><span>Flokkur ${escapeHtml(displayLabel(item.party))}</span><span>Reach ${escapeHtml(item.reach)}</span><span>Engagement ${escapeHtml(item.engagements)}</span><span>Áhrif ${escapeHtml(String(Math.round(item.impactScore)))}</span></div></button><div class="mt-4">${hasUrl ? `<a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer" class="text-sm font-semibold ${selected && selected.id === item.id ? "text-[#8ebeff]" : "text-[#1446dc]"}">Sjá meira</a>` : `<span class="text-sm font-semibold ${selected && selected.id === item.id ? "text-slate-400" : "text-slate-400"}">Enginn hlekkur</span>`}</div></article>`; }).join("") : `<div class="rounded-[24px] border border-dashed border-slate-300 p-8 text-center text-sm text-slate-500">Engin atriði passa við núverandi síur.</div>`}${feed.length > state.visibleFeedCount ? `<div class="flex justify-center pt-4"><button id="toggleFeedBtn" type="button" class="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm font-semibold text-slate-700 shadow-sm">Sjá meira (${Math.min(10, feed.length - state.visibleFeedCount)} í viðbót)</button></div>` : ""}</div>
+                  <div class="rounded-[28px] border border-slate-200 bg-[linear-gradient(180deg,_#fff7ed,_#ffffff)] p-5">${selected ? `<div class="flex items-start justify-between gap-4"><div><div class="text-xs uppercase tracking-[0.24em] text-slate-400">Mention detail</div><h3 class="mt-2 text-2xl font-semibold text-slate-900">${escapeHtml(selected.title)}</h3></div><span class="rounded-full px-3 py-1 text-xs font-semibold ${sentimentClass(selected.sentiment)}">${escapeHtml(displayLabel(selected.sentiment))}</span></div><p class="mt-4 text-sm leading-7 text-slate-600">${escapeHtml(selected.summary || "Engin frekari lýsing fylgdi atriðinu.")}</p><div class="mt-5 grid gap-3 sm:grid-cols-2"><div class="rounded-2xl bg-white p-4"><div class="text-xs uppercase tracking-[0.2em] text-slate-400">Heimild</div><div class="mt-2 text-lg font-semibold text-slate-900">${escapeHtml(shortSourceLabel(selected.source))}</div><div class="mt-1 text-sm text-slate-500">${escapeHtml(selected.author)}</div></div><div class="rounded-2xl bg-white p-4"><div class="text-xs uppercase tracking-[0.2em] text-slate-400">Áhorfendasignal</div><div class="mt-2 text-lg font-semibold text-slate-900">${escapeHtml(selected.reach)} reach</div><div class="mt-1 text-sm text-slate-500">${escapeHtml(selected.engagements)} engagement</div></div><div class="rounded-2xl bg-white p-4"><div class="text-xs uppercase tracking-[0.2em] text-slate-400">Málefni / flokkur</div><div class="mt-2 text-lg font-semibold text-slate-900">${escapeHtml(displayLabel(selected.topic))}</div><div class="mt-1 text-sm text-slate-500">${escapeHtml(displayLabel(selected.party))}</div></div><div class="rounded-2xl bg-white p-4"><div class="text-xs uppercase tracking-[0.2em] text-slate-400">Hraði</div><div class="mt-2 text-lg font-semibold text-slate-900">${escapeHtml(displayLabel(selected.velocity))}</div><div class="mt-1 text-sm text-slate-500">${escapeHtml(formatRelative(selected.publishedAt))}</div></div></div><div class="mt-5 rounded-[24px] bg-slate-950 p-4 text-white"><div class="text-xs uppercase tracking-[0.24em] text-slate-400">Greining</div><p class="mt-3 text-sm leading-7 text-slate-300">Þetta atriði sýnir hvernig mælaborðið getur sameinað heimild, sentiment og áhrif í eina nothæfa sýn sem hentar vel fyrir viðvaranir og vistaðar leitir.</p></div>` : `<div class="text-sm text-slate-500">Veldu atriði til að sjá nánari greiningu.</div>`}</div>
+                </div>
+              </div>
+            </div>
+            <div class="space-y-8">
+              <div class="rounded-[32px] border border-[#d7e3fb] bg-white p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]"><div class="text-xs uppercase tracking-[0.24em] text-[#5b7397]">Volume over time</div><h2 class="mt-1 text-2xl font-semibold text-[#081c40]">Tímalína umræðu</h2><div class="mt-6">${renderTimeline(feed)}</div></div>
+              <div class="rounded-[32px] border border-[#d7e3fb] bg-white p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]"><div class="text-xs uppercase tracking-[0.24em] text-[#5b7397]">Sentiment mix</div><h2 class="mt-1 text-2xl font-semibold text-[#081c40]">Audience mood</h2><div class="mt-6">${renderSentimentDonut(state.dashboard.sentimentTotals)}</div></div>
+              <div class="rounded-[32px] border border-[#d7e3fb] bg-white p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]"><div class="text-xs uppercase tracking-[0.24em] text-[#5b7397]">Alerts</div><h2 class="mt-1 text-2xl font-semibold text-[#081c40]">Merki sem vert er að fylgjast með</h2><div class="mt-4 space-y-3">${state.dashboard.alerts.length ? state.dashboard.alerts.map((alert) => `<div class="rounded-2xl border border-[#d7e3fb] bg-white p-4"><div class="flex items-center justify-between gap-3"><div class="font-semibold text-[#081c40]">${escapeHtml(alert.label)}</div><div class="rounded-full bg-[#dceaff] px-3 py-1 text-xs font-semibold text-[#1446dc]">${escapeHtml(alert.severity)}</div></div><div class="mt-2 text-sm text-[#60779a]">${escapeHtml(displayAlertChannel(alert.channel))}</div></div>`).join("") : `<div class="text-sm text-[#60779a]">Engar viðvaranir enn.</div>`}</div></div>
+            </div>
+          </section>
+          <section class="grid gap-8 lg:grid-cols-3">
+            <div class="rounded-[32px] border border-[#d7e3fb] bg-white p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]"><div class="text-xs uppercase tracking-[0.24em] text-[#5b7397]">Competitive share</div><h2 class="mt-1 text-2xl font-semibold text-[#081c40]">Flokkar í umræðu</h2><div class="mt-5 space-y-4">${renderBarChart(state.dashboard.parties.map((item) => ({ label: displayLabel(item.name), value: item.mentions })), "bg-gradient-to-r from-[#00258c] to-[#1446dc]")}</div></div>
+            <div class="rounded-[32px] border border-[#d7e3fb] bg-white p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]"><div class="text-xs uppercase tracking-[0.24em] text-[#5b7397]">Topic share</div><h2 class="mt-1 text-2xl font-semibold text-[#081c40]">Trending topics</h2><div class="mt-5 space-y-4">${renderBarChart(state.dashboard.topics.map((item) => ({ label: displayLabel(item.label), value: item.value })), "bg-gradient-to-r from-[#3a8dde] to-[#1446dc]")}</div></div>
+            <div class="rounded-[32px] border border-[#d7e3fb] bg-white p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]"><div class="text-xs uppercase tracking-[0.24em] text-[#5b7397]">Channel mix</div><h2 class="mt-1 text-2xl font-semibold text-[#081c40]">Source health</h2><div class="mt-5 space-y-4">${renderBarChart(state.dashboard.channelBreakdown, "bg-gradient-to-r from-[#081c40] to-[#3a8dde]")}</div></div>
+          </section>
+          <section class="grid gap-8 xl:grid-cols-[1.02fr_0.98fr]">
+            <div class="rounded-[32px] border border-[#d7e3fb] bg-white p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]">
+              <div class="flex items-center justify-between gap-3"><div><div class="text-xs uppercase tracking-[0.24em] text-[#5b7397]">Polling intelligence</div><h2 class="mt-1 text-2xl font-semibold text-[#081c40]">Maskína og aðrar kannanir</h2></div><div class="rounded-full bg-[#dceaff] px-3 py-1 text-xs font-semibold text-[#1446dc]">${escapeHtml(String(state.dashboard.polls.length))} heimildir</div></div>
+              <div class="mt-6 space-y-4">${renderPollList(state.dashboard.polls || [])}</div>
+            </div>
+            <div class="space-y-8">
+              <div class="rounded-[32px] border border-[#d7e3fb] bg-white p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]">
+                <div class="text-xs uppercase tracking-[0.24em] text-[#5b7397]">Poll average</div>
+                <h2 class="mt-1 text-2xl font-semibold text-[#081c40]">Meðaltal fylgis</h2>
+                <div class="mt-5 space-y-4">${renderBarChart((state.dashboard.pollAverage || []).map((row) => ({ label: displayLabel(row.party), value: row.percentage })), "bg-gradient-to-r from-indigo-500 to-sky-400")}</div>
+              </div>
+              <div class="rounded-[32px] border border-[#d7e3fb] bg-white p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]">
+                <div class="text-xs uppercase tracking-[0.24em] text-[#5b7397]">Seat projection</div>
+                <h2 class="mt-1 text-2xl font-semibold text-[#081c40]">Þingsætaskipting</h2>
+                <div class="mt-5 space-y-4">${renderSeatProjection(state.dashboard.seatProjection || [])}</div>
+              </div>
+            </div>
+          </section>
+        </div>`;
+
+      bindEvents();
+    }
+    function bindEvents() {
+      document.getElementById("searchInput")?.addEventListener("input", (event) => { state.search = event.target.value; state.visibleFeedCount = 10; render(); });
+      document.getElementById("sortSelect")?.addEventListener("change", (event) => { state.sortBy = event.target.value; render(); });
+      document.getElementById("partySelect")?.addEventListener("change", (event) => { state.selectedParty = event.target.value; state.visibleFeedCount = 10; render(); });
+      document.getElementById("topicSelect")?.addEventListener("change", (event) => { state.selectedTopic = event.target.value; state.visibleFeedCount = 10; render(); });
+      document.getElementById("memberSelect")?.addEventListener("change", (event) => { state.selectedMember = event.target.value; state.visibleFeedCount = 10; render(); });
+      document.getElementById("sourceSelect")?.addEventListener("change", (event) => { state.selectedSource = event.target.value; state.visibleFeedCount = 10; render(); });
+      document.getElementById("sentimentSelect")?.addEventListener("change", (event) => { state.selectedSentiment = event.target.value; state.visibleFeedCount = 10; render(); });
+      document.getElementById("clearFiltersBtn")?.addEventListener("click", () => {
+        state.search = "";
+        state.selectedParty = "all";
+        state.selectedTopic = "all";
+        state.selectedMember = "all";
+        state.selectedSource = "all";
+        state.selectedSentiment = "all";
+        state.sortBy = "impact";
+        state.visibleFeedCount = 10;
+        render();
+      });
+      document.getElementById("refreshBtn")?.addEventListener("click", () => init());
+      document.getElementById("toggleAutoRefreshBtn")?.addEventListener("click", () => { state.autoRefresh = !state.autoRefresh; render(); });
+      document.getElementById("toggleFeedBtn")?.addEventListener("click", () => { state.visibleFeedCount += 10; render(); });
+      document.getElementById("comparePartyA")?.addEventListener("change", (event) => {
+        state.comparePartyA = event.target.value;
+        if (state.comparePartyA === state.comparePartyB) {
+          state.comparePartyB = sortPartyOptions([...Object.keys(PARTY_ALIASES)]).find((party) => party !== state.comparePartyA) || state.comparePartyB;
+        }
+        render();
+      });
+      document.getElementById("comparePartyB")?.addEventListener("change", (event) => {
+        state.comparePartyB = event.target.value;
+        if (state.comparePartyB === state.comparePartyA) {
+          state.comparePartyA = sortPartyOptions([...Object.keys(PARTY_ALIASES)]).find((party) => party !== state.comparePartyB) || state.comparePartyA;
+        }
+        render();
+      });
+      document.getElementById("compareLeaderA")?.addEventListener("change", (event) => {
+        state.compareLeaderA = event.target.value;
+        if (state.compareLeaderA === state.compareLeaderB) {
+          state.compareLeaderB = sortPartyOptions([...Object.keys(PARTY_LEADERS)]).find((party) => party !== state.compareLeaderA) || state.compareLeaderB;
+        }
+        render();
+      });
+      document.getElementById("compareLeaderB")?.addEventListener("change", (event) => {
+        state.compareLeaderB = event.target.value;
+        if (state.compareLeaderB === state.compareLeaderA) {
+          state.compareLeaderA = sortPartyOptions([...Object.keys(PARTY_LEADERS)]).find((party) => party !== state.compareLeaderB) || state.compareLeaderA;
+        }
+        render();
+      });
+      document.querySelectorAll(".mentionBtn").forEach((button) => button.addEventListener("click", () => { state.selectedMentionId = button.dataset.mentionId; render(); }));
+      document.querySelectorAll(".keywordBtn").forEach((button) => button.addEventListener("click", () => { state.search = button.dataset.keyword; state.visibleFeedCount = 10; render(); }));
+      document.querySelectorAll(".queryModeBtn").forEach((button) => button.addEventListener("click", () => { state.queryMode = button.dataset.mode; state.visibleFeedCount = 10; render(); }));
+    }
+    async function init() {
+      state.loading = true;
+      render();
+      try {
+        const apiData = await fetchDashboard();
+        const data = Array.isArray(apiData.feed) && apiData.feed.length ? apiData : buildDemoDashboard();
+        state.dashboard = deriveDashboard(data);
+        state.usingDemoData = !Array.isArray(apiData.feed) || !apiData.feed.length;
+        state.error = "";
+      } catch (error) {
+        state.dashboard = deriveDashboard(buildDemoDashboard());
+        state.usingDemoData = true;
+        state.error = `API villa: ${error?.message || error}`;
+      } finally {
+        state.loading = false;
+        state.lastUpdated = new Date().toISOString();
+        state.visibleFeedCount = 10;
+        if (!state.selectedMentionId || !state.dashboard.feed.find((item) => item.id === state.selectedMentionId)) {
+          state.selectedMentionId = state.dashboard.feed[0]?.id || null;
+        }
+        render();
+      }
+    }
+    init();
+    setInterval(() => { if (state.autoRefresh) init(); }, 300000);
+  </script>
+</body>
+</html>
