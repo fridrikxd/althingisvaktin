@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="is">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Sveitarstjórnarkosningar 2026 | Sjálfstæðisvaktin</title>
+  <link rel="icon" type="image/png" href="https://xd.is/wp-content/uploads/2025/11/XD-Social_Media-Facebook-Profile_picture.png" />
+  <link rel="shortcut icon" href="https://xd.is/wp-content/uploads/2025/11/XD-Social_Media-Facebook-Profile_picture.png" />
+  <link rel="apple-touch-icon" href="https://xd.is/wp-content/uploads/2025/11/XD-Social_Media-Facebook-Profile_picture.png" />
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="min-h-screen bg-[radial-gradient(circle_at_top,_#ffffff,_#f4f8ff_38%,_#e4eefc_72%,_#d8e6fb)] text-slate-900">
+  <div id="app" class="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8"></div>
+  <script>
+    const ELECTION_DATE = "16. maí 2026";
+    const OFFICIAL_LINKS = [
+      {
+        label: "Ísland.is",
+        url: "https://island.is/v/sveitarstjornarkosningar-2026/utankjoerfundaratkvaedagreidsla26",
+        note: "Opinber upplýsingasíða um sveitarstjórnarkosningarnar 2026 og lykildagsetningar."
+      },
+      {
+        label: "Landskjörstjórn",
+        url: "https://www.landskjor.is/",
+        note: "Opinber aðili um framkvæmd kosninga og reglur."
+      },
+      {
+        label: "Samband íslenskra sveitarfélaga",
+        url: "https://www.samband.is/sveitarfelog",
+        note: "Svæðaskiptur listi yfir sveitarfélög landsins."
+      },
+      {
+        label: "Kosningasaga",
+        url: "https://kosningasaga.wordpress.com/sveitarstjornarkosningar/",
+        note: "Sögulegt safn um sveitarstjórnarkosningar og fyrri úrslit."
+      }
+    ];
+
+    const MEDIA_HUBS = [
+      {
+        label: "Vísir",
+        url: "https://www.visir.is/g/20262824698d/kosningavaktin-2026-lands-menn-kjosa-ser-sveitar-stjornir",
+        note: "Kosningavakt Vísis fyrir sveitarstjórnarkosningarnar 2026."
+      },
+      {
+        label: "RÚV",
+        url: "https://www.ruv.is/frettir/efni/sveitarstjornarkosningar-2026",
+        note: "Efnisveita RÚV um sveitarstjórnarkosningarnar 2026."
+      },
+      {
+        label: "mbl.is",
+        url: "https://www.google.com/search?q=site%3Ambl.is+sveitarstjornarkosningar+2026",
+        note: "Leit að umfjöllun mbl.is um sveitarstjórnarkosningarnar 2026."
+      }
+    ];
+
+    const PARTY_SOURCE_LIBRARY = [
+      {
+        label: "Sjálfstæðisflokkurinn",
+        url: "https://test.xd.is/sveitastj%C3%B3rnir/",
+        note: "Yfirlit flokksins yfir sveitarstjórnir og tengda starfsemi eftir sveitarfélögum."
+      },
+      {
+        label: "Samfylkingin",
+        url: "https://xs.is/vidburdir/2026/01/felagsfundur-um-sveitarstjornarkosningarnar-moso",
+        note: "Dæmi um flokksupplýsingar um val á framboðslista í Mosfellsbæ."
+      },
+      {
+        label: "Framsókn",
+        url: "https://www.google.com/search?q=site%3Aframsokn.is+sveitarstjornarkosningar+2026",
+        note: "Leit að framboðslistum, prófkjörum og sveitarstjórnarefni hjá Framsókn."
+      },
+      {
+        label: "Viðreisn",
+        url: "https://www.google.com/search?q=site%3Avidreisn.is+sveitarstjornarkosningar+2026",
+        note: "Leit að framboðum, oddvitavali og sveitarstjórnarefni hjá Viðreisn."
+      },
+      {
+        label: "Píratar",
+        url: "https://www.google.com/search?q=site%3Apiratar.is+sveitarstjornarkosningar+2026",
+        note: "Leit að sveitarstjórnarframboðum hjá Pírötum."
+      },
+      {
+        label: "Flokkur fólksins",
+        url: "https://www.google.com/search?q=site%3Aflokkurfolksins.is+sveitarstjornarkosningar+2026",
+        note: "Leit að framboðum og sveitarstjórnarefni hjá Flokki fólksins."
+      }
+    ];
+
+    const REGIONS = [
+      {
+        region: "Höfuðborgarsvæðið",
+        municipalities: ["Reykjavíkurborg", "Kópavogsbær", "Hafnarfjarðarkaupstaður", "Garðabær", "Mosfellsbær", "Seltjarnarnesbær", "Kjósarhreppur"]
+      },
+      {
+        region: "Suðurnes",
+        municipalities: ["Reykjanesbær", "Grindavíkurbær", "Suðurnesjabær", "Sveitarfélagið Vogar"]
+      },
+      {
+        region: "Vesturland",
+        municipalities: ["Akraneskaupstaður", "Borgarbyggð", "Dalabyggð", "Eyja- og Miklaholtshreppur", "Grundarfjarðarbær", "Hvalfjarðarsveit", "Skorradalshreppur", "Snæfellsbær", "Sveitarfélagið Stykkishólmur"]
+      },
+      {
+        region: "Vestfirðir",
+        municipalities: ["Bolungarvíkurkaupstaður", "Kaldrananeshreppur", "Reykhólahreppur", "Strandabyggð", "Súðavíkurhreppur", "Vesturbyggð", "Árneshreppur", "Ísafjarðarbær"]
+      },
+      {
+        region: "Norðurland vestra",
+        municipalities: ["Húnabyggð", "Húnaþing vestra", "Skagafjörður", "Sveitarfélagið Skagaströnd"]
+      },
+      {
+        region: "Norðurland eystra",
+        municipalities: ["Akureyrarbær", "Dalvíkurbyggð", "Eyjafjarðarsveit", "Fjallabyggð", "Grýtubakkahreppur", "Hörgársveit", "Langanesbyggð", "Norðurþing", "Svalbarðsstrandarhreppur", "Tjörneshreppur", "Þingeyjarsveit"]
+      },
+      {
+        region: "Austurland",
+        municipalities: ["Fjarðabyggð", "Fljótsdalshreppur", "Múlaþing", "Vopnafjarðarhreppur"]
+      },
+      {
+        region: "Suðurland",
+        municipalities: ["Bláskógabyggð", "Flóahreppur", "Grímsnes- og Grafningshreppur", "Hrunamannahreppur", "Hveragerðisbær", "Mýrdalshreppur", "Rangárþing eystra", "Rangárþing ytra", "Skaftárhreppur", "Skeiða- og Gnúpverjahreppur", "Sveitarfélagið Hornafjörður", "Sveitarfélagið Árborg", "Sveitarfélagið Ölfus", "Vestmannaeyjabær", "Ásahreppur"]
+      }
+    ];
+
+    const CURATED_MUNICIPALITY_SOURCES = {
+      "Reykjavíkurborg": [
+        {
+          label: "Kosningavakt Vísis",
+          url: "https://www.visir.is/g/20262824698d/kosningavaktin-2026-lands-menn-kjosa-ser-sveitar-stjornir",
+          note: "Fylgjast sérstaklega með Reykjavík og stærstu sveitarfélögunum."
+        },
+        {
+          label: "RÚV sveitarstjórnarkosningar 2026",
+          url: "https://www.ruv.is/frettir/efni/sveitarstjornarkosningar-2026",
+          note: "Miðlæg kosningaumfjöllun og fréttir."
+        },
+        {
+          label: "Sjálfstæðisflokkurinn - sveitarstjórnir",
+          url: "https://test.xd.is/sveitastj%C3%B3rnir/",
+          note: "Flokkstengd sveitarstjórnasíða með Reykjavík meðal sveitarfélaga."
+        }
+      ],
+      "Mosfellsbær": [
+        {
+          label: "Samfylkingin í Mosfellsbæ",
+          url: "https://xs.is/vidburdir/2026/01/felagsfundur-um-sveitarstjornarkosningarnar-moso",
+          note: "Fundur um tilhögun á vali á framboðslista fyrir Mosfellsbæ."
+        },
+        {
+          label: "Vísir - kosningavakt",
+          url: "https://www.visir.is/g/20262824698d/kosningavaktin-2026-lands-menn-kjosa-ser-sveitar-stjornir",
+          note: "Almenn kosningavakt með fréttum sem hægt er að para við Mosfellsbæ."
+        }
+      ],
+      "Akureyrarbær": [
+        {
+          label: "RÚV - sveitarstjórnarkosningar 2026",
+          url: "https://www.ruv.is/frettir/efni/sveitarstjornarkosningar-2026",
+          note: "Fylgjast með oddvitamálum og framboðum á Akureyri."
+        },
+        {
+          label: "Kosningasaga",
+          url: "https://kosningasaga.wordpress.com/sveitarstjornarkosningar/",
+          note: "Sögulegt samhengi um fyrri sveitarstjórnarkosningar á Akureyri."
+        }
+      ],
+      "Reykjanesbær": [
+        {
+          label: "Vísir - kosningavakt",
+          url: "https://www.visir.is/g/20262824698d/kosningavaktin-2026-lands-menn-kjosa-ser-sveitar-stjornir",
+          note: "Almenn kosningavakt með fréttum frá Suðurnesjum."
+        },
+        {
+          label: "Sjálfstæðisflokkurinn - sveitarstjórnir",
+          url: "https://test.xd.is/sveitastj%C3%B3rnir/",
+          note: "Flokksuppfletting fyrir sveitarfélög, þar á meðal Reykjanesbæ."
+        }
+      ],
+      "Sveitarfélagið Árborg": [
+        {
+          label: "RÚV - sveitarstjórnarkosningar 2026",
+          url: "https://www.ruv.is/frettir/efni/sveitarstjornarkosningar-2026",
+          note: "Miðlæg umfjöllun sem nýtist vel fyrir Árborg."
+        },
+        {
+          label: "Sjálfstæðisflokkurinn - sveitarstjórnir",
+          url: "https://test.xd.is/sveitastj%C3%B3rnir/",
+          note: "Flokksgögn sem tengjast sveitarfélögum á Suðurlandi."
+        }
+      ]
+    };
+
+    function slugify(value) {
+      return value
+        .toLowerCase()
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .replace(/[^a-z0-9]+/g, "-")
+        .replace(/^-+|-+$/g, "");
+    }
+
+    function escapeHtml(value = "") {
+      return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    const MUNICIPALITY_DATA = REGIONS.flatMap((group) =>
+      group.municipalities.map((name) => ({
+        name,
+        slug: slugify(name),
+        region: group.region
+      }))
+    ).sort((a, b) => a.name.localeCompare(b.name, "is"));
+
+    function mediaSearchLinks(name) {
+      const encoded = encodeURIComponent(`${name} sveitarstjórnarkosningar 2026`);
+      return [
+        {
+          label: "Vísir leit",
+          url: `https://www.google.com/search?q=site%3Avisir.is+${encoded}`,
+          note: `Leit að fréttum á Vísi um ${name}.`
+        },
+        {
+          label: "RÚV leit",
+          url: `https://www.google.com/search?q=site%3Aruv.is+${encoded}`,
+          note: `Leit að fréttum á RÚV um ${name}.`
+        },
+        {
+          label: "mbl.is leit",
+          url: `https://www.google.com/search?q=site%3Ambl.is+${encoded}`,
+          note: `Leit að fréttum á mbl.is um ${name}.`
+        }
+      ];
+    }
+
+    function trackTerms(name) {
+      return [
+        name,
+        `${name} framboð`,
+        `${name} framboðslisti`,
+        `${name} oddviti`,
+        `${name} sveitarstjórn`,
+        `${name} bæjarstjórn`,
+        `${name} kosningar`
+      ];
+    }
+
+    function municipalitySection(selectedName) {
+      const selected = MUNICIPALITY_DATA.find((item) => item.name === selectedName) || MUNICIPALITY_DATA[0];
+      const curated = CURATED_MUNICIPALITY_SOURCES[selected.name] || [];
+      const mediaLinks = mediaSearchLinks(selected.name);
+      const historyLink = {
+        label: "Kosningasaga",
+        url: "https://kosningasaga.wordpress.com/sveitarstjornarkosningar/",
+        note: `Sögulegt samhengi og eldri niðurstöður sem nýtast við mat á þróun í ${selected.name}.`
+      };
+
+      return `
+        <section class="grid gap-8 xl:grid-cols-[0.84fr_1.16fr]">
+          <div class="rounded-[32px] border border-[#d7e3fb] bg-[linear-gradient(180deg,_#ffffff,_#f7faff)] p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]">
+            <div class="text-xs uppercase tracking-[0.24em] text-[#5b7397]">Sveitarfélag</div>
+            <h2 class="mt-1 text-2xl font-semibold text-[#081c40]">Veldu sveitarfélag</h2>
+            <p class="mt-2 text-sm leading-6 text-[#60779a]">Notaðu fellilistann til að þrengja vöktunina niður á eitt sveitarfélag og sjá helstu slóðir, leitarsnið og sögulegt samhengi.</p>
+            <div class="mt-5">
+              <select id="municipalitySelect" class="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm">
+                ${MUNICIPALITY_DATA.map((item) => `<option value="${escapeHtml(item.name)}" ${item.name === selected.name ? "selected" : ""}>${escapeHtml(item.name)} · ${escapeHtml(item.region)}</option>`).join("")}
+              </select>
+            </div>
+            <div class="mt-5 grid gap-4 sm:grid-cols-2">
+              <div class="rounded-2xl border border-slate-200 bg-white p-4">
+                <div class="text-xs uppercase tracking-[0.18em] text-slate-400">Svæði</div>
+                <div class="mt-2 text-lg font-semibold text-[#081c40]">${escapeHtml(selected.region)}</div>
+              </div>
+              <div class="rounded-2xl border border-slate-200 bg-white p-4">
+                <div class="text-xs uppercase tracking-[0.18em] text-slate-400">Kosningadagur</div>
+                <div class="mt-2 text-lg font-semibold text-[#081c40]">${ELECTION_DATE}</div>
+              </div>
+            </div>
+            <div class="mt-5 rounded-[24px] border border-slate-200 bg-white p-5">
+              <div class="text-xs uppercase tracking-[0.18em] text-slate-400">Leitarorð fyrir vakt</div>
+              <div class="mt-3 flex flex-wrap gap-2">
+                ${trackTerms(selected.name).map((term) => `<span class="rounded-full border border-slate-200 bg-[#f7faff] px-3 py-1 text-xs font-semibold text-[#16315f]">${escapeHtml(term)}</span>`).join("")}
+              </div>
+            </div>
+          </div>
+          <div class="space-y-8">
+            <div class="rounded-[32px] border border-[#d7e3fb] bg-white p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]">
+              <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <div class="text-xs uppercase tracking-[0.24em] text-[#5b7397]">Framboðslistar og flokkaslóðir</div>
+                  <h2 class="mt-1 text-2xl font-semibold text-[#081c40]">${escapeHtml(selected.name)}</h2>
+                </div>
+                <div class="rounded-full bg-[#dceaff] px-3 py-1 text-xs font-semibold text-[#1446dc]">${curated.length ? `${curated.length} sérslóðir` : "grunnvöktun"}</div>
+              </div>
+              <div class="mt-5 space-y-4">
+                ${(curated.length ? curated : PARTY_SOURCE_LIBRARY.slice(0, 3)).map((source) => `
+                  <a href="${escapeHtml(source.url)}" target="_blank" rel="noopener noreferrer" class="block rounded-[24px] border border-slate-200 bg-[#f9fbff] p-5 transition hover:border-[#3a8dde] hover:shadow-[0_12px_36px_rgba(0,37,140,0.12)]">
+                    <div class="text-sm font-semibold text-[#081c40]">${escapeHtml(source.label)}</div>
+                    <p class="mt-2 text-sm leading-6 text-slate-600">${escapeHtml(source.note)}</p>
+                  </a>
+                `).join("")}
+              </div>
+            </div>
+            <div class="rounded-[32px] border border-[#d7e3fb] bg-white p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]">
+              <div class="text-xs uppercase tracking-[0.24em] text-[#5b7397]">Fjölmiðlavakt</div>
+              <h2 class="mt-1 text-2xl font-semibold text-[#081c40]">Fréttir og umtal um ${escapeHtml(selected.name)}</h2>
+              <div class="mt-5 grid gap-4 md:grid-cols-2">
+                ${mediaLinks.map((item) => `
+                  <a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer" class="rounded-[24px] border border-slate-200 bg-[#f9fbff] p-5 transition hover:border-[#3a8dde] hover:shadow-[0_12px_36px_rgba(0,37,140,0.12)]">
+                    <div class="text-sm font-semibold text-[#081c40]">${escapeHtml(item.label)}</div>
+                    <p class="mt-2 text-sm leading-6 text-slate-600">${escapeHtml(item.note)}</p>
+                  </a>
+                `).join("")}
+                <a href="${escapeHtml(historyLink.url)}" target="_blank" rel="noopener noreferrer" class="rounded-[24px] border border-slate-200 bg-[#f9fbff] p-5 transition hover:border-[#3a8dde] hover:shadow-[0_12px_36px_rgba(0,37,140,0.12)]">
+                  <div class="text-sm font-semibold text-[#081c40]">${escapeHtml(historyLink.label)}</div>
+                  <p class="mt-2 text-sm leading-6 text-slate-600">${escapeHtml(historyLink.note)}</p>
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+      `;
+    }
+
+    function render() {
+      const selectedMunicipality = new URLSearchParams(window.location.search).get("sveitarfelag") || "Reykjavíkurborg";
+      const municipalityCount = MUNICIPALITY_DATA.length;
+      const app = document.getElementById("app");
+
+      app.innerHTML = `
+        <div class="space-y-10">
+          <section class="overflow-hidden rounded-[36px] border border-[#0f2f78] bg-[#00258c] text-white shadow-[0_30px_90px_rgba(8,28,64,0.28)]">
+            <div class="grid gap-12 p-7 lg:grid-cols-[1.1fr_0.9fr] lg:p-10">
+              <div>
+                <div class="inline-flex rounded-full border border-[#6f9cf0] bg-[#081c40] px-3 py-1 text-xs font-semibold uppercase tracking-[0.26em] text-white">Sveitarstjórnarkosningar 2026</div>
+                <h1 class="mt-5 max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">Kosningavakt fyrir sveitarfélög landsins</h1>
+                <p class="mt-4 max-w-2xl text-sm leading-6 text-slate-300">Sérsía fyrir sveitarstjórnarkosningarnar ${ELECTION_DATE}. Hér er safnað saman opinberum upplýsingum, fjölmiðlavakt, flokkaslóðum og sögulegu samhengi eftir sveitarfélögum.</p>
+                <div class="mt-6 flex flex-wrap gap-2">
+                  <a href="./index.html" class="rounded-full border border-[#6f9cf0] bg-white px-4 py-2 text-sm font-semibold text-[#00258c]">Fréttavakt</a>
+                  <a href="./flokkar.html" class="rounded-full border border-[#6f9cf0] bg-[#081c40] px-4 py-2 text-sm font-semibold text-white hover:bg-[#103075]">Flokkavakt</a>
+                  <a href="./leidtogar.html" class="rounded-full border border-[#6f9cf0] bg-[#081c40] px-4 py-2 text-sm font-semibold text-white hover:bg-[#103075]">Leiðtogavakt</a>
+                  <span class="rounded-full border border-white bg-white px-4 py-2 text-sm font-semibold text-[#00258c]">Sveitarstjórnarkosningar 2026</span>
+                </div>
+              </div>
+              <div class="rounded-[32px] border border-[#2047a8] bg-[#081c40] p-6">
+                <div class="text-xs uppercase tracking-[0.24em] text-[#9bb6ea]">Lykilatriði</div>
+                <div class="mt-5 grid gap-3 sm:grid-cols-2">
+                  <div class="rounded-2xl border border-[#2047a8] bg-[#0c2358] p-4">
+                    <div class="text-xs uppercase tracking-[0.2em] text-[#9bb6ea]">Kosningadagur</div>
+                    <div class="mt-2 text-xl font-semibold">${ELECTION_DATE}</div>
+                  </div>
+                  <div class="rounded-2xl border border-[#2047a8] bg-[#0c2358] p-4">
+                    <div class="text-xs uppercase tracking-[0.2em] text-[#9bb6ea]">Sveitarfélög</div>
+                    <div class="mt-2 text-xl font-semibold">${municipalityCount}</div>
+                  </div>
+                  <div class="rounded-2xl border border-[#2047a8] bg-[#0c2358] p-4">
+                    <div class="text-xs uppercase tracking-[0.2em] text-[#9bb6ea]">Kjarnamiðlar</div>
+                    <div class="mt-2 text-xl font-semibold">Vísir · RÚV · mbl.is</div>
+                  </div>
+                  <div class="rounded-2xl border border-[#2047a8] bg-[#0c2358] p-4">
+                    <div class="text-xs uppercase tracking-[0.2em] text-[#9bb6ea]">Bakgrunnur</div>
+                    <div class="mt-2 text-xl font-semibold">Kosningasaga + opinber gögn</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="grid gap-6 md:grid-cols-2 xl:grid-cols-4">
+            ${OFFICIAL_LINKS.map((item) => `
+              <a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer" class="rounded-[28px] border border-[#d7e3fb] bg-white p-5 shadow-[0_18px_50px_rgba(0,37,140,0.08)] transition hover:border-[#3a8dde] hover:shadow-[0_24px_60px_rgba(0,37,140,0.12)]">
+                <div class="text-xs uppercase tracking-[0.22em] text-[#5b7397]">Opinber heimild</div>
+                <div class="mt-3 text-xl font-semibold text-[#081c40]">${escapeHtml(item.label)}</div>
+                <p class="mt-2 text-sm leading-6 text-slate-600">${escapeHtml(item.note)}</p>
+              </a>
+            `).join("")}
+          </section>
+
+          ${municipalitySection(selectedMunicipality)}
+
+          <section class="grid gap-8 xl:grid-cols-[1.05fr_0.95fr]">
+            <div class="rounded-[32px] border border-[#d7e3fb] bg-white p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]">
+              <div class="text-xs uppercase tracking-[0.24em] text-[#5b7397]">Fjölmiðlaheimildir</div>
+              <h2 class="mt-1 text-2xl font-semibold text-[#081c40]">Miðlæg kosningavakt</h2>
+              <div class="mt-5 space-y-4">
+                ${MEDIA_HUBS.map((item) => `
+                  <a href="${escapeHtml(item.url)}" target="_blank" rel="noopener noreferrer" class="block rounded-[24px] border border-slate-200 bg-[#f9fbff] p-5 transition hover:border-[#3a8dde] hover:shadow-[0_12px_36px_rgba(0,37,140,0.12)]">
+                    <div class="text-sm font-semibold text-[#081c40]">${escapeHtml(item.label)}</div>
+                    <p class="mt-2 text-sm leading-6 text-slate-600">${escapeHtml(item.note)}</p>
+                  </a>
+                `).join("")}
+              </div>
+            </div>
+            <div class="rounded-[32px] border border-[#d7e3fb] bg-[linear-gradient(180deg,_#ffffff,_#f7faff)] p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]">
+              <div class="text-xs uppercase tracking-[0.24em] text-[#5b7397]">Hvernig nota á síðuna</div>
+              <h2 class="mt-1 text-2xl font-semibold text-[#081c40]">Vöktun á framboðum og sveitarfélögum</h2>
+              <div class="mt-5 grid gap-4">
+                <div class="rounded-2xl border border-slate-200 bg-white p-4">
+                  <div class="text-xs uppercase tracking-[0.18em] text-slate-400">1. Sveitarfélag</div>
+                  <p class="mt-2 text-sm leading-6 text-slate-600">Veldu sveitarfélag í fellilistanum og notaðu síðan slóðirnar fyrir fjölmiðla, flokka og bakgrunnsgögn sem snúa að viðkomandi stað.</p>
+                </div>
+                <div class="rounded-2xl border border-slate-200 bg-white p-4">
+                  <div class="text-xs uppercase tracking-[0.18em] text-slate-400">2. Framboðslistar</div>
+                  <p class="mt-2 text-sm leading-6 text-slate-600">Þessi fyrsta útgáfa er byggð sem safnsíða og vöktunarsnið. Hún nýtist strax til að rekja framboðslista eftir því sem flokkar og fjölmiðlar birta upplýsingar.</p>
+                </div>
+                <div class="rounded-2xl border border-slate-200 bg-white p-4">
+                  <div class="text-xs uppercase tracking-[0.18em] text-slate-400">3. Næsta skref</div>
+                  <p class="mt-2 text-sm leading-6 text-slate-600">Auðvelt er að bæta við sérupplýsingum fyrir hvert sveitarfélag, til dæmis oddvitum, framboðslistum, viðburðum, könnunum og staðbundnum fréttum.</p>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <section class="rounded-[32px] border border-[#d7e3fb] bg-white p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+              <div>
+                <div class="text-xs uppercase tracking-[0.24em] text-[#5b7397]">Yfirlit sveitarfélaga</div>
+                <h2 class="mt-1 text-2xl font-semibold text-[#081c40]">Svæðaskipt uppsetning</h2>
+              </div>
+              <div class="rounded-full bg-[#dceaff] px-3 py-1 text-xs font-semibold text-[#1446dc]">${municipalityCount} sveitarfélög</div>
+            </div>
+            <div class="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              ${REGIONS.map((group) => `
+                <div class="rounded-[24px] border border-slate-200 bg-[#f9fbff] p-5">
+                  <div class="text-sm font-semibold text-[#081c40]">${escapeHtml(group.region)}</div>
+                  <div class="mt-2 text-xs uppercase tracking-[0.18em] text-slate-400">${group.municipalities.length} sveitarfélög</div>
+                  <div class="mt-4 flex flex-wrap gap-2">
+                    ${group.municipalities.slice(0, 6).map((name) => `<span class="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-[#16315f]">${escapeHtml(name)}</span>`).join("")}
+                    ${group.municipalities.length > 6 ? `<span class="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs font-semibold text-slate-500">+${group.municipalities.length - 6} í viðbót</span>` : ""}
+                  </div>
+                </div>
+              `).join("")}
+            </div>
+          </section>
+        </div>
+      `;
+
+      document.getElementById("municipalitySelect")?.addEventListener("change", (event) => {
+        const url = new URL(window.location.href);
+        url.searchParams.set("sveitarfelag", event.target.value);
+        window.location.href = url.toString();
+      });
+    }
+
+    render();
+  </script>
+</body>
+</html>

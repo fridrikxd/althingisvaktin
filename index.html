@@ -292,6 +292,7 @@
     function renderPageTabs(currentPage) {
       return `<div class="mt-6 flex flex-wrap gap-2">
         ${Object.entries(PAGE_CONFIG).map(([key, page]) => `<a href="${pageHref(key)}" class="rounded-full border px-4 py-2 text-sm font-semibold transition ${currentPage === key ? "border-white bg-white text-[#00258c]" : "border-[#6f9cf0] bg-[#081c40] text-white hover:bg-[#103075]"}">${escapeHtml(page.badge)}</a>`).join("")}
+        <a href="./sveitarstjornarkosningar-2026.html" class="rounded-full border border-[#6f9cf0] bg-[#081c40] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#103075]">Sveitarstjórnarkosningar 2026</a>
       </div>`;
     }
 
