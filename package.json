@@ -4,7 +4,7 @@
   "scripts": {
     "dev": "wrangler dev",
     "deploy": "wrangler deploy",
-    "deploy:pages": "wrangler pages deploy dist --project-name althingisvaktin-pages"
+    "deploy:pages": "wrangler pages deploy dist --project-name althingisvaktin-pages --branch main --commit-dirty=true"
   },
   "devDependencies": {
     "wrangler": "^4.8.0"
