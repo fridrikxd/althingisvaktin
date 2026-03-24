@@ -1,6 +1,11 @@
 # Sjálfvirkt deploy með GitHub
 
-Þetta workflow deploy-ar `worker.js` sjálfkrafa í Cloudflare þegar þú pushar á `main`.
+Þessi verkefnauppsetning deploy-ar nú bæði:
+
+- `worker.js` í Cloudflare Workers
+- HTML síðurnar í Cloudflare Pages
+
+við hvert `push` á `main`.
 
 ## 1. Búa til GitHub repo
 
@@ -54,7 +59,23 @@ Tokenið þarf að geta deploy-að Workers í þínum account.
 - `CLOUDFLARE_API_TOKEN`
 - `CLOUDFLARE_ACCOUNT_ID`
 
-## 6. Prófa sjálfvirkt deploy
+## 6. Cloudflare Pages project
+
+Til að Pages workflowið virki þarf Pages projectið að heita:
+
+- `althingisvaktin-pages`
+
+Ef projectið þitt heitir öðru nafni, þarf að uppfæra það í:
+
+- `.github/workflows/deploy-pages.yml`
+
+í línunni með:
+
+```yml
+--project-name althingisvaktin-pages
+```
+
+## 7. Prófa sjálfvirkt deploy
 
 Gerðu litla breytingu og push-aðu:
 
@@ -64,9 +85,12 @@ git commit -m "Test auto deploy"
 git push
 ```
 
-Þá keyrir GitHub Actions workflowið sjálfkrafa og deploy-ar workerinum.
+Þá keyra GitHub Actions workflowin sjálfkrafa og deploy-a:
 
-## 7. Daglegt workflow eftir þetta
+- workerinum
+- frontend síðunum
+
+## 8. Daglegt workflow eftir þetta
 
 Þegar þú eða ég breytum skrám:
 
@@ -76,13 +100,14 @@ git commit -m "Update worker logic"
 git push
 ```
 
-Og þá sér GitHub um deploy-ið.
+Og þá sér GitHub um deploy-ið á bæði API og frontend.
 
-## 8. Hvað er þegar tilbúið
+## 9. Hvað er þegar tilbúið
 
 Þessar skrár eru nú þegar komnar í verkefnið:
 
 - `.github/workflows/deploy-worker.yml`
+- `.github/workflows/deploy-pages.yml`
 - `.gitignore`
 
 Þannig að þegar repo og secrets eru komin upp, verður þetta sjálfvirkt strax.
