@@ -1,4 +1,10 @@
 (function () {
+  function itemMatchesTrackedPerson(item) {
+    const matchesLeader = Object.keys(PARTY_LEADERS).some((party) => itemMatchesLeader(item, party));
+    if (matchesLeader) return true;
+    return allTrackedMembers().some((member) => itemMatchesMember(item, member));
+  }
+
   function buildLeaderVoices(benchmarkParties, benchmarkFeed) {
     return benchmarkParties
       .map((party) => {
@@ -106,7 +112,7 @@
       <div class="mt-4 grid gap-3 md:grid-cols-5">
         <select id="partySelect" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm"><option value="all">Allir flokkar</option>${parties.map((party) => `<option value="${escapeHtml(party)}" ${state.selectedParty === party ? "selected" : ""}>${escapeHtml(displayLabel(party))}</option>`).join("")}</select>
         <select id="topicSelect" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm"><option value="all">Öll málefni</option>${topics.map((topic) => `<option value="${escapeHtml(topic)}" ${state.selectedTopic === topic ? "selected" : ""}>${escapeHtml(displayLabel(topic))}</option>`).join("")}</select>
-        <select id="memberSelect" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm"><option value="all">Allir þingmenn</option>${members.map((member) => `<option value="${escapeHtml(member)}" ${state.selectedMember === member ? "selected" : ""}>${escapeHtml(displayMemberName(member))}</option>`).join("")}</select>
+        <select id="memberSelect" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm"><option value="all">Allir leiðtogar og þingmenn</option>${members.map((member) => `<option value="${escapeHtml(member)}" ${state.selectedMember === member ? "selected" : ""}>${escapeHtml(displayMemberName(member))}</option>`).join("")}</select>
         <select id="sourceSelect" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm"><option value="all">Allar rásir</option>${sources.map((source) => `<option value="${escapeHtml(source)}" ${state.selectedSource === source ? "selected" : ""}>${escapeHtml(shortSourceLabel(source))}</option>`).join("")}</select>
         <select id="sentimentSelect" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm"><option value="all">Allt sentiment</option><option value="jakvaed" ${state.selectedSentiment === "jakvaed" ? "selected" : ""}>Jákvætt</option><option value="neikvaed" ${state.selectedSentiment === "neikvaed" ? "selected" : ""}>Neikvætt</option><option value="blandad" ${state.selectedSentiment === "blandad" ? "selected" : ""}>Blandað</option><option value="hlutlaus" ${state.selectedSentiment === "hlutlaus" ? "selected" : ""}>Hlutlaust</option></select>
       </div>
@@ -153,7 +159,7 @@
         <select id="sentimentSelect" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm"><option value="all">Allt sentiment</option><option value="jakvaed" ${state.selectedSentiment === "jakvaed" ? "selected" : ""}>Jákvætt</option><option value="neikvaed" ${state.selectedSentiment === "neikvaed" ? "selected" : ""}>Neikvætt</option><option value="blandad" ${state.selectedSentiment === "blandad" ? "selected" : ""}>Blandað</option><option value="hlutlaus" ${state.selectedSentiment === "hlutlaus" ? "selected" : ""}>Hlutlaust</option></select>
       `
       : `
-        <select id="memberSelect" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm"><option value="all">Allir þingmenn</option>${members.map((member) => `<option value="${escapeHtml(member)}" ${state.selectedMember === member ? "selected" : ""}>${escapeHtml(displayMemberName(member))}</option>`).join("")}</select>
+        <select id="memberSelect" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm"><option value="all">Allir leiðtogar og þingmenn</option>${members.map((member) => `<option value="${escapeHtml(member)}" ${state.selectedMember === member ? "selected" : ""}>${escapeHtml(displayMemberName(member))}</option>`).join("")}</select>
         <select id="partySelect" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm"><option value="all">Allir flokkar</option>${parties.map((party) => `<option value="${escapeHtml(party)}" ${state.selectedParty === party ? "selected" : ""}>${escapeHtml(displayLabel(party))}</option>`).join("")}</select>
         <select id="sourceSelect" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm"><option value="all">Allar rásir</option>${sources.map((source) => `<option value="${escapeHtml(source)}" ${state.selectedSource === source ? "selected" : ""}>${escapeHtml(shortSourceLabel(source))}</option>`).join("")}</select>
         <select id="sentimentSelect" class="rounded-2xl border border-slate-200 bg-white px-4 py-2.5 text-sm"><option value="all">Allt sentiment</option><option value="jakvaed" ${state.selectedSentiment === "jakvaed" ? "selected" : ""}>Jákvætt</option><option value="neikvaed" ${state.selectedSentiment === "neikvaed" ? "selected" : ""}>Neikvætt</option><option value="blandad" ${state.selectedSentiment === "blandad" ? "selected" : ""}>Blandað</option><option value="hlutlaus" ${state.selectedSentiment === "hlutlaus" ? "selected" : ""}>Hlutlaust</option></select>
@@ -260,8 +266,11 @@
     const pageConfig = PAGE_CONFIG[currentPage];
     document.title = currentPage === "frettir" ? "Sjálfstæðisvaktin" : `${pageConfig.title} | Sjálfstæðisvaktin`;
     const feed = filteredFeed();
-    const visibleFeed = feed.slice(0, state.visibleFeedCount);
-    const selected = selectedMention(feed);
+    const effectiveFeed = currentPage === "leidtogar" && state.selectedMember === "all" && state.selectedParty === "all"
+      ? feed.filter((item) => itemMatchesTrackedPerson(item))
+      : feed;
+    const visibleFeed = effectiveFeed.slice(0, state.visibleFeedCount);
+    const selected = selectedMention(effectiveFeed);
     const sources = [...new Set([...state.dashboard.feed.map((item) => item.source), "VB", "BBC World", "POLITICO Europe"])].sort();
     const parties = sortPartyOptions([...Object.keys(PARTY_ALIASES), ...state.dashboard.feed.map((item) => item.party), "Oflokkat"]);
     const members = allTrackedMembers();
@@ -286,7 +295,7 @@
         app,
         currentPage,
         pageConfig,
-        feed,
+        feed: effectiveFeed,
         visibleFeed,
         selected,
         sources,
@@ -330,7 +339,7 @@
           ${renderLatestAnalysis(curatedPoliticalFeed, selected)}
           ${renderWeekSummary(summary)}
         </section>
-        ${renderNewsFeedSection(feed, visibleFeed, selected, parties, topics, members, sources)}
+        ${renderNewsFeedSection(effectiveFeed, visibleFeed, selected, parties, topics, members, sources)}
       </div>`;
 
     bindEvents();
