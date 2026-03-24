@@ -26,6 +26,7 @@ jobs:
         run: |
           mkdir -p dist
           cp index.html dist/
+          cp frontend-override.js dist/
           cp flokkar.html dist/
           cp leidtogar.html dist/
           cp sveitarstjornarkosningar-2026.html dist/
