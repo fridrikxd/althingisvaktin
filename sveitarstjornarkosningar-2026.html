@@ -140,7 +140,11 @@
       "Múlaþing": ["Múlaþing", "Egilsstaðir", "Seyðisfjörður", "Djúpivogur"],
       "Hafnarfjarðarkaupstaður": ["Hafnarfjörður", "Hafnarfjarðarkaupstaður"],
       "Kópavogsbær": ["Kópavogur", "Kópavogsbær"],
-      "Mosfellsbær": ["Mosfellsbær", "Mosó"]
+      "Mosfellsbær": ["Mosfellsbær", "Mosó"],
+      "Hveragerðisbær": ["Hveragerði", "Hveragerðisbær"],
+      "Sveitarfélagið Ölfus": ["Ölfus", "Þorlákshöfn", "Sveitarfélagið Ölfus"],
+      "Garðabær": ["Garðabær", "Garðabæ"],
+      "Seltjarnarnesbær": ["Seltjarnarnes", "Seltjarnarnesbær"]
     };
 
     function slugify(value) {
@@ -248,7 +252,10 @@
     };
 
     function municipalityAliases(name) {
-      return MUNICIPALITY_ALIAS_OVERRIDES[name] || [name];
+      const aliases = new Set(MUNICIPALITY_ALIAS_OVERRIDES[name] || [name]);
+      aliases.add(name.replace(/^Sveitarfélagið\s+/i, "").trim());
+      aliases.add(name.replace(/^Sveitarfélagið\s+/i, "").trim());
+      return [...aliases].filter(Boolean);
     }
 
     function regionalMediaForMunicipality(selected) {
@@ -261,29 +268,19 @@
       const feed = state.dashboard?.feed || [];
       const aliases = municipalityAliases(selected.name).map(stripAccents);
       const terms = MUNICIPAL_TERMS.map(stripAccents);
-      const regionalSourceNames = new Set(regionalMediaForMunicipality(selected).map((item) => stripAccents(item.label)));
-
-      const exactMatches = feed.filter((item) => {
+      const directMatches = feed.filter((item) => {
         const combined = stripAccents(`${item.title || ""} ${item.summary || ""}`);
         return aliases.some((alias) => combined.includes(alias));
       });
 
-      const filtered = exactMatches.filter((item) => {
+      const filtered = directMatches.filter((item) => {
         const combined = stripAccents(`${item.title || ""} ${item.summary || ""} ${item.source || ""}`);
         const electionMatch = terms.some((term) => combined.includes(term));
         const politicalMatch = item.party && stripAccents(item.party) !== "oflokkad";
-        const localSourceMatch = regionalSourceNames.has(stripAccents(canonicalSourceLabel(item.source)));
-        return electionMatch || politicalMatch || localSourceMatch;
+        return electionMatch || politicalMatch;
       });
 
-      const fallback = feed.filter((item) => {
-        const combined = stripAccents(`${item.title || ""} ${item.summary || ""} ${item.source || ""}`);
-        const electionMatch = terms.some((term) => combined.includes(term));
-        const localSourceMatch = regionalSourceNames.has(stripAccents(canonicalSourceLabel(item.source)));
-        return electionMatch && localSourceMatch;
-      });
-
-      return (filtered.length ? filtered : fallback)
+      return (filtered.length ? filtered : directMatches)
         .sort((a, b) => new Date(b.publishedAt || 0) - new Date(a.publishedAt || 0))
         .slice(0, 24);
     }
