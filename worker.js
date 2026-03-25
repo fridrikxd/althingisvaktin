@@ -66,6 +66,27 @@ const POLL_SNAPSHOT = {
   ]
 };
 
+const MUNICIPAL_FILTER_TERMS = [
+  "sveitarstjornarkosningar",
+  "sveitarstjorn",
+  "baejarstjorn",
+  "oddviti",
+  "frambod",
+  "frambodslisti",
+  "meirihluti",
+  "minnihluti",
+  "sveitarfelag",
+  "reykjavikurborg",
+  "kopavogur",
+  "hafnarfjordur",
+  "mosfellsbaer",
+  "reykjanesbaer",
+  "akureyri",
+  "arborg",
+  "vestmannaeyjar",
+  "mulathing"
+];
+
 const NEWS_FEEDS = [
   { name: "Visir", url: "https://www.visir.is/rss/allt", kind: "rss" },
   { name: "mbl.is", url: "https://www.mbl.is/feeds/innlent/", kind: "rss" },
@@ -86,6 +107,60 @@ const NEWS_FEEDS = [
     url: "https://www.politico.eu/country/iceland/",
     kind: "html",
     filterTerms: ["iceland", "reykjavik", "icelandic", "althingi", "independence party", "social democrats", "kristrun", "gudrun hafsteinsdottir"]
+  },
+  {
+    name: "DFS",
+    url: "https://www.dfs.is/frettir/",
+    kind: "html",
+    filterTerms: MUNICIPAL_FILTER_TERMS
+  },
+  {
+    name: "Sunnlenska",
+    url: "https://www.sunnlenska.is/flokkur/frettir",
+    kind: "html",
+    filterTerms: MUNICIPAL_FILTER_TERMS
+  },
+  {
+    name: "Eyjafrettir",
+    url: "https://eyjafrettir.is/",
+    kind: "html",
+    filterTerms: MUNICIPAL_FILTER_TERMS
+  },
+  {
+    name: "Tigull",
+    url: "https://tigull.is/",
+    kind: "html",
+    filterTerms: MUNICIPAL_FILTER_TERMS
+  },
+  {
+    name: "Vikurfrettir",
+    url: "https://www.vf.is/",
+    kind: "html",
+    filterTerms: MUNICIPAL_FILTER_TERMS
+  },
+  {
+    name: "BB",
+    url: "https://bb.is/",
+    kind: "html",
+    filterTerms: MUNICIPAL_FILTER_TERMS
+  },
+  {
+    name: "Skessuhorn",
+    url: "https://skessuhorn.is/",
+    kind: "html",
+    filterTerms: MUNICIPAL_FILTER_TERMS
+  },
+  {
+    name: "Akureyri.net",
+    url: "https://www.akureyri.net/",
+    kind: "html",
+    filterTerms: MUNICIPAL_FILTER_TERMS
+  },
+  {
+    name: "Austurfrett",
+    url: "https://www.austurfrett.is/",
+    kind: "html",
+    filterTerms: MUNICIPAL_FILTER_TERMS
   }
 ];
 
@@ -330,6 +405,20 @@ function parseHtmlArticles(htmlText, baseUrl) {
     const href = absolutizeUrl(baseUrl, match[1]);
     const rawAnchorText = cleanupHtml(match[2] || "");
     if (!rawAnchorText || rawAnchorText.length < 12) continue;
+    articles.push({
+      title: rawAnchorText,
+      summary: "",
+      url: href,
+      publishedAt: ""
+    });
+  }
+
+  const articleBlockMatches = [...htmlText.matchAll(/<article\b[\s\S]*?<a[^>]+href="([^"]+)"[^>]*>([\s\S]*?)<\/a>[\s\S]*?<\/article>/gi)];
+  for (const match of articleBlockMatches) {
+    const href = absolutizeUrl(baseUrl, match[1]);
+    const rawAnchorText = cleanupHtml(match[2] || "");
+    if (!rawAnchorText || rawAnchorText.length < 18) continue;
+    if (/\/flokkur\/|\/tag\/|\/hofundar\/|\/um-|\#/.test(href)) continue;
     articles.push({
       title: rawAnchorText,
       summary: "",
