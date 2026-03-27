@@ -1263,13 +1263,6 @@ async function fetchHagstofaSettlementSeries(ageGroup = "all") {
         }
       },
       {
-        code: "Aldur",
-        selection: {
-          filter: "item",
-          values: ageValues
-        }
-      },
-      {
         code: "Ár",
         selection: {
           filter: "top",
