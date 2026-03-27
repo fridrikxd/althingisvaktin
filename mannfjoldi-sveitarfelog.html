@@ -305,6 +305,9 @@
       const response = await fetch(`${API_URL}/hagstofa/municipality-age-metadata`, { method: "GET", cache: "no-store" });
       if (!response.ok) throw new Error(`Metadata svaraði ${response.status}`);
       const metadata = await response.json();
+      if (!metadata || !Array.isArray(metadata.variables)) {
+        throw new Error(metadata?.details || metadata?.error || "Óvænt metadata-svar frá Hagstofu API.");
+      }
       const municipalityVariable = metadata.variables.find((item) => item.code === "Sveitarfélag");
       if (!municipalityVariable) throw new Error("Fann ekki sveitarfélagavídd í Hagstofu metadata.");
 

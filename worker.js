@@ -442,6 +442,57 @@ function parseHtmlArticles(htmlText, baseUrl) {
       }
     }
 
+    if (url.pathname === "/hagstofa/municipality-age-metadata") {
+      try {
+        const metadata = await fetchHagstofaMunicipalityAgeMetadata();
+        return jsonResponse(metadata);
+      } catch (error) {
+        return jsonResponse(
+          {
+            error: "Ekki tókst að sækja sveitarfélaga- og aldursmetadata frá Hagstofu.",
+            details: String(error?.message || error)
+          },
+          500
+        );
+      }
+    }
+
+    if (url.pathname === "/hagstofa/municipality-age") {
+      const code = url.searchParams.get("code");
+      const ageGroup = url.searchParams.get("ageGroup") || "all";
+      if (!code) {
+        return jsonResponse({ error: "Vantar sveitarfélagakóða." }, 400);
+      }
+      try {
+        const rows = await fetchHagstofaMunicipalityAgeSeries(code, ageGroup);
+        return jsonResponse({ code, ageGroup, rows });
+      } catch (error) {
+        return jsonResponse(
+          {
+            error: "Ekki tókst að sækja sveitarfélaga- og aldursgögn frá Hagstofu.",
+            details: String(error?.message || error)
+          },
+          500
+        );
+      }
+    }
+
+    if (url.pathname === "/hagstofa/urbanity") {
+      const ageGroup = url.searchParams.get("ageGroup") || "all";
+      try {
+        const rows = await fetchHagstofaUrbanitySeries(ageGroup);
+        return jsonResponse({ ageGroup, rows });
+      } catch (error) {
+        return jsonResponse(
+          {
+            error: "Ekki tókst að sækja þéttbýlisgögn frá Hagstofu.",
+            details: String(error?.message || error)
+          },
+          500
+        );
+      }
+    }
+
     try {
       const payload = JSON.parse(match[1].trim());
       const nodes = Array.isArray(payload) ? payload : payload?.["@graph"] || [payload];
