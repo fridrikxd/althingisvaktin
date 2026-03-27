@@ -201,6 +201,7 @@ const POLL_SOURCES = [
 const HAGSTOFA_MUNICIPALITY_AGE_TABLE = "https://px.hagstofa.is/pxis/api/v1/is/Ibuar/mannfjoldi/2_byggdir/sveitarfelog/MAN02005.px";
 const HAGSTOFA_URBANITY_TABLE = "https://px.hagstofa.is/pxis/api/v1/is/Ibuar/mannfjoldi/2_byggdir/Byggdakjarnarhverfi/MAN03280.px";
 const HAGSTOFA_SETTLEMENT_TABLE = "https://px.hagstofa.is/pxis/api/v1/is/Ibuar/mannfjoldi/2_byggdir/Byggdakjarnar/MAN030101.px";
+const HAGSTOFA_CITIZENSHIP_TABLE = "https://px.hagstofa.is/pxis/api/v1/is/Ibuar/mannfjoldi/3_bakgrunnur/Rikisfang/MAN04203.px";
 
 const PARTY_ALIASES = {
   "Sjalfstaedisflokkurinn": [
@@ -1319,6 +1320,150 @@ async function fetchHagstofaSettlementSeries(ageGroup = "all") {
   return rows;
 }
 
+async function fetchHagstofaCitizenshipGenderBreakdown(code) {
+  const body = {
+    query: [
+      {
+        code: "Sveitarfélag",
+        selection: {
+          filter: "item",
+          values: [code]
+        }
+      },
+      {
+        code: "Ríkisfang",
+        selection: {
+          filter: "all",
+          values: ["*"]
+        }
+      },
+      {
+        code: "Ár",
+        selection: {
+          filter: "top",
+          values: ["1"]
+        }
+      },
+      {
+        code: "Kyn",
+        selection: {
+          filter: "all",
+          values: ["*"]
+        }
+      }
+    ],
+    response: {
+      format: "json-stat2"
+    }
+  };
+
+  const response = await fetch(HAGSTOFA_CITIZENSHIP_TABLE, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "accept": "application/json"
+    },
+    body: JSON.stringify(body)
+  });
+
+  const text = await response.text();
+  if (!response.ok) {
+    throw new Error(`Hagstofa citizenship responded ${response.status}: ${text.slice(0, 180)}`);
+  }
+
+  const payload = JSON.parse(text);
+  const values = payload.value || [];
+  const dimension = payload.dimension || {};
+  const citizenshipCategory = dimension["Ríkisfang"]?.category;
+  const genderCategory = dimension["Kyn"]?.category;
+  const yearCategory = dimension["Ár"]?.category;
+  const municipalityCategory = dimension["Sveitarfélag"]?.category;
+
+  const citizenshipCodes = citizenshipCategory?.index ? Object.keys(citizenshipCategory.index) : [];
+  const citizenshipLabels = citizenshipCategory?.label || {};
+  const genderCodes = genderCategory?.index ? Object.keys(genderCategory.index) : [];
+  const genderLabels = genderCategory?.label || {};
+  const yearCode = yearCategory?.index ? Object.keys(yearCategory.index)[0] : "";
+  const yearLabel = yearCategory?.label?.[yearCode] || yearCode;
+  const municipalityCode = municipalityCategory?.index ? Object.keys(municipalityCategory.index)[0] : code;
+  const municipalityLabel = municipalityCategory?.label?.[municipalityCode] || code;
+
+  const byCitizenship = [];
+  const byGender = [];
+  let totalAll = 0;
+  let icelandic = 0;
+  let men = 0;
+  let women = 0;
+  let otherGender = 0;
+
+  for (let citizenshipPos = 0; citizenshipPos < citizenshipCodes.length; citizenshipPos += 1) {
+    const citizenshipCode = citizenshipCodes[citizenshipPos];
+    const citizenshipLabel = citizenshipLabels[citizenshipCode] || citizenshipCode;
+    let totalForCitizenship = 0;
+
+    for (let genderPos = 0; genderPos < genderCodes.length; genderPos += 1) {
+      const valueIndex = citizenshipPos * genderCodes.length + genderPos;
+      const value = Number(values[valueIndex] || 0);
+      totalForCitizenship += value;
+
+      if (citizenshipLabel === "Alls") {
+        const genderLabel = genderLabels[genderCodes[genderPos]] || genderCodes[genderPos];
+        if (genderLabel === "Alls") totalAll = value;
+        if (genderLabel === "Karlar") men = value;
+        if (genderLabel === "Konur") women = value;
+        if (genderLabel === "Kynsegin/annað") otherGender = value;
+      }
+    }
+
+    byCitizenship.push({
+      code: citizenshipCode,
+      label: citizenshipLabel,
+      population: totalForCitizenship
+    });
+
+    if (citizenshipLabel === "Ísland") {
+      icelandic = totalForCitizenship;
+    }
+  }
+
+  for (let genderPos = 0; genderPos < genderCodes.length; genderPos += 1) {
+    const genderLabel = genderLabels[genderCodes[genderPos]] || genderCodes[genderPos];
+    let totalForGender = 0;
+    for (let citizenshipPos = 0; citizenshipPos < citizenshipCodes.length; citizenshipPos += 1) {
+      const citizenshipLabel = citizenshipLabels[citizenshipCodes[citizenshipPos]] || citizenshipCodes[citizenshipPos];
+      if (citizenshipLabel !== "Alls") continue;
+      const valueIndex = citizenshipPos * genderCodes.length + genderPos;
+      totalForGender = Number(values[valueIndex] || 0);
+      break;
+    }
+    byGender.push({
+      code: genderCodes[genderPos],
+      label: genderLabel,
+      population: totalForGender
+    });
+  }
+
+  const foreign = Math.max(0, totalAll - icelandic);
+
+  return {
+    municipalityCode,
+    municipalityLabel,
+    year: yearLabel,
+    total: totalAll,
+    citizenship: {
+      icelandic,
+      foreign
+    },
+    gender: {
+      men,
+      women,
+      other: otherGender
+    },
+    byCitizenship,
+    byGender
+  };
+}
+
 export default {
   async fetch(request) {
     if (request.method === "OPTIONS") return new Response(null, { headers: corsHeaders() });
@@ -1419,6 +1564,25 @@ export default {
         return jsonResponse(
           {
             error: "Ekki tókst að sækja byggðakjarnagögn frá Hagstofu.",
+            details: String(error?.message || error)
+          },
+          500
+        );
+      }
+    }
+
+    if (url.pathname === "/hagstofa/citizenship-gender") {
+      const code = url.searchParams.get("code");
+      if (!code) {
+        return jsonResponse({ error: "Vantar sveitarfélagakóða." }, 400);
+      }
+      try {
+        const breakdown = await fetchHagstofaCitizenshipGenderBreakdown(code);
+        return jsonResponse(breakdown);
+      } catch (error) {
+        return jsonResponse(
+          {
+            error: "Ekki tókst að sækja ríkisfangs- og kyngögn frá Hagstofu.",
             details: String(error?.message || error)
           },
           500
