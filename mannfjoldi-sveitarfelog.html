@@ -35,6 +35,59 @@
       { value: "18plus", label: "18 ára og eldri" }
     ];
 
+    const MUNICIPALITY_SETTLEMENTS = {
+      "Reykjavíkurborg": ["Reykjavík"],
+      "Kópavogsbær": ["Kópavogur"],
+      "Hafnarfjarðarkaupstaður": ["Hafnarfjörður"],
+      "Garðabær": ["Garðabær", "Álftanes"],
+      "Mosfellsbær": ["Mosfellsbær", "Mosfellsdalur"],
+      "Seltjarnarnesbær": ["Seltjarnarnes"],
+      "Reykjanesbær": ["Keflavík og Njarðvík", "Hafnir"],
+      "Grindavíkurbær": ["Grindavík"],
+      "Suðurnesjabær": ["Sandgerði", "Garður"],
+      "Sveitarfélagið Vogar": ["Vogar"],
+      "Akraneskaupstaður": ["Akranes"],
+      "Borgarbyggð": ["Borgarnes", "Hvanneyri", "Kleppjárnsreykir", "Reykholt, Borgarfirði", "Bifröst"],
+      "Dalabyggð": ["Búðardalur"],
+      "Grundarfjarðarbær": ["Grundarfjörður"],
+      "Snæfellsbær": ["Hellissandur", "Rif", "Ólafsvík"],
+      "Sveitarfélagið Stykkishólmur": ["Stykkishólmur"],
+      "Reykhólahreppur": ["Reykhólar"],
+      "Vesturbyggð": ["Patreksfjörður", "Tálknafjörður", "Bíldudalur"],
+      "Strandabyggð": ["Hólmavík"],
+      "Bolungarvíkurkaupstaður": ["Bolungarvík"],
+      "Ísafjarðarbær": ["Þingeyri", "Flateyri", "Suðureyri", "Hnífsdalur", "Ísafjörður", "Súðavík"],
+      "Húnaþing vestra": ["Laugarbakki", "Hvammstangi"],
+      "Húnabyggð": ["Blönduós"],
+      "Sveitarfélagið Skagaströnd": ["Skagaströnd"],
+      "Skagafjörður": ["Sauðárkrókur", "Varmahlíð", "Hólar í Hjaltadal", "Hofsós"],
+      "Fjallabyggð": ["Siglufjörður", "Ólafsfjörður"],
+      "Dalvíkurbyggð": ["Dalvík", "Hrísey", "Litli-Árskógssandur", "Hauganes"],
+      "Hörgársveit": ["Hjalteyri", "Lónsbakki"],
+      "Akureyrarbær": ["Grímsey", "Akureyri"],
+      "Eyjafjarðarsveit": ["Kristnes", "Hrafnagil", "Öngulsstaðir", "Brúnahlíð, Eyjafirði", "Svalbarðseyri"],
+      "Grýtubakkahreppur": ["Grenivík"],
+      "Þingeyjarsveit": ["Laugar", "Reykjahlíð", "Vogar við Mývatn"],
+      "Norðurþing": ["Húsavík", "Kópasker", "Raufarhöfn"],
+      "Langanesbyggð": ["Þórshöfn", "Bakkafjörður"],
+      "Vopnafjarðarhreppur": ["Vopnafjörður"],
+      "Múlaþing": ["Borgarfjörður eystri", "Seyðisfjörður", "Fellabær", "Hallormsstaður", "Egilsstaðir", "Eiðar", "Djúpivogur"],
+      "Fjarðabyggð": ["Neskaupstaður", "Eskifjörður", "Reyðarfjörður", "Fáskrúðsfjörður", "Stöðvarfjörður", "Breiðdalsvík"],
+      "Sveitarfélagið Hornafjörður": ["Nesjahverfi, Hornafirði", "Höfn í Hornafirði", "Hof"],
+      "Skaftárhreppur": ["Kirkjubæjarklaustur"],
+      "Mýrdalshreppur": ["Vík í Mýrdal"],
+      "Vestmannaeyjabær": ["Vestmannaeyjar"],
+      "Rangárþing eystra": ["Skógar", "Hvolsvöllur"],
+      "Rangárþing ytra": ["Hella", "Þykkvibær", "Rauðalækur"],
+      "Sveitarfélagið Árborg": ["Stokkseyri", "Eyrarbakki", "Selfoss"],
+      "Skeiða- og Gnúpverjahreppur": ["Brautarholt, Skeiðum", "Árnes"],
+      "Hrunamannahreppur": ["Flúðir"],
+      "Bláskógabyggð": ["Laugarás", "Reykholt, Biskupstungum", "Laugarvatn"],
+      "Grímsnes- og Grafningshreppur": ["Sólheimar, Grímsnesi", "Borg, Grímsnesi", "Gljúfurárholt", "Vellir"],
+      "Hveragerðisbær": ["Hveragerði"],
+      "Sveitarfélagið Ölfus": ["Árbæjarhverfi, Ölfusi", "Þorlákshöfn"]
+    };
+
     const state = {
       loadingMeta: true,
       loadingData: false,
@@ -44,6 +97,7 @@
       selectedLabel: "",
       ageGroup: "all",
       rows: [],
+      settlementRows: [],
       urbanityRows: [],
       lastUpdated: ""
     };
@@ -55,6 +109,13 @@
         .replaceAll(">", "&gt;")
         .replaceAll('"', "&quot;")
         .replaceAll("'", "&#39;");
+    }
+
+    function stripAccents(value = "") {
+      return String(value)
+        .normalize("NFD")
+        .replace(/[\u0300-\u036f]/g, "")
+        .toLowerCase();
     }
 
     function formatNumber(value) {
@@ -87,6 +148,23 @@
 
     function latestUrbanityRows() {
       return [...state.urbanityRows].sort((a, b) => b.population - a.population);
+    }
+
+    function municipalitySettlementAliases(label = "") {
+      return MUNICIPALITY_SETTLEMENTS[label] || [];
+    }
+
+    function municipalityUrbanityBreakdown() {
+      const total = Number(latestRow()?.population || 0);
+      const aliases = municipalitySettlementAliases(state.selectedLabel).map(stripAccents);
+      const urbanRows = state.settlementRows.filter((row) => {
+        const normalizedLabel = stripAccents(row.label || "");
+        if (!normalizedLabel || normalizedLabel === "alls" || normalizedLabel.startsWith("strajlb")) return false;
+        return aliases.some((alias) => normalizedLabel === alias || normalizedLabel.includes(alias) || alias.includes(normalizedLabel));
+      });
+      const urbanPopulation = urbanRows.reduce((sum, row) => sum + Number(row.population || 0), 0);
+      const ruralPopulation = Math.max(0, total - urbanPopulation);
+      return { total, urbanRows, urbanPopulation, ruralPopulation };
     }
 
     function renderBars(rows) {
@@ -145,6 +223,48 @@
                 </div>
               </div>
             `).join("")}
+          </div>
+        </section>
+      `;
+    }
+
+    function renderMunicipalityUrbanityCard() {
+      const breakdown = municipalityUrbanityBreakdown();
+      const total = breakdown.total || 1;
+      const urbanPercent = Math.round((breakdown.urbanPopulation / total) * 100);
+      const ruralPercent = Math.max(0, 100 - urbanPercent);
+
+      return `
+        <section class="rounded-[28px] border border-[#d7e3fb] bg-white p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]">
+          <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <div class="text-xs uppercase tracking-[0.22em] text-[#5b7397]">Þéttbýli vs. dreifbýli í sveitarfélaginu</div>
+              <h2 class="mt-1 text-2xl font-semibold text-[#081c40]">${escapeHtml(state.selectedLabel)}</h2>
+            </div>
+            <div class="rounded-full bg-[#eef4ff] px-3 py-1 text-xs font-semibold text-[#365b93]">${escapeHtml(AGE_GROUPS.find((item) => item.value === state.ageGroup)?.label || "")}</div>
+          </div>
+          <p class="mt-3 text-sm leading-6 text-slate-600">Kubburinn byggir á byggðakjarnatöflu Hagstofunnar. Íbúar í skráðum byggðakjörnum innan sveitarfélagsins teljast hér sem þéttbýli og afgangurinn er sýndur sem dreifbýli.</p>
+          <div class="mt-6 grid gap-4 sm:grid-cols-2">
+            <div class="rounded-[24px] border border-[#d7e3fb] bg-[#f9fbff] p-5">
+              <div class="text-xs uppercase tracking-[0.18em] text-slate-400">Þéttbýli / byggðakjarnar</div>
+              <div class="mt-2 text-3xl font-semibold text-[#081c40]">${escapeHtml(formatNumber(breakdown.urbanPopulation))}</div>
+              <div class="mt-1 text-sm text-[#60779a]">${escapeHtml(`${urbanPercent}% af heild`)}</div>
+            </div>
+            <div class="rounded-[24px] border border-[#d7e3fb] bg-[#f9fbff] p-5">
+              <div class="text-xs uppercase tracking-[0.18em] text-slate-400">Dreifbýli / utan byggðakjarna</div>
+              <div class="mt-2 text-3xl font-semibold text-[#081c40]">${escapeHtml(formatNumber(breakdown.ruralPopulation))}</div>
+              <div class="mt-1 text-sm text-[#60779a]">${escapeHtml(`${ruralPercent}% af heild`)}</div>
+            </div>
+          </div>
+          <div class="mt-5">
+            <div class="h-4 rounded-full bg-[#eef4ff]">
+              <div class="h-4 rounded-l-full bg-[linear-gradient(90deg,_#8dc1ff,_#1446dc)]" style="width:${Math.max(4, urbanPercent)}%"></div>
+            </div>
+            <div class="mt-3 flex flex-wrap gap-2">
+              ${(breakdown.urbanRows.length ? breakdown.urbanRows : [{ label: "Enginn skráður byggðakjarni fannst", population: 0 }]).map((row) => `
+                <span class="rounded-full border border-slate-200 bg-[#f7faff] px-3 py-1 text-xs font-semibold text-[#16315f]">${escapeHtml(row.label)}${row.population ? ` · ${escapeHtml(formatNumber(row.population))}` : ""}</span>
+              `).join("")}
+            </div>
           </div>
         </section>
       `;
@@ -268,9 +388,10 @@
                 <h2 class="mt-1 text-2xl font-semibold text-[#081c40]">Sveitarfélög, aldur og kjósendur</h2>
                 <div class="mt-5 space-y-4 text-sm leading-7 text-slate-700">
                   <p>Heildarmannfjöldi og 18 ára+ koma úr sérstakri sveitarfélaga- og aldurstöflu Hagstofunnar. Þannig er hægt að horfa á nálgun við fjölda kosningabærra í hverju sveitarfélagi.</p>
-                  <p>Þéttbýli vs. dreifbýli kemur úr annarri Hagstofutöflu um þéttbýlisstig. Sá kubbur er því landsheildarsamhengi, ekki brotinn niður á einstök sveitarfélög.</p>
+                  <p>Nýi sveitarfélagakubburinn notar byggðakjarnatöflu Hagstofunnar til að leggja saman skráða byggðakjarna innan valins sveitarfélags. Landskubbinn fyrir þéttbýli og dreifbýli sýnum við áfram sem breiðara samhengi.</p>
                 </div>
               </section>
+              ${!state.loadingData && !state.loadingMeta ? renderMunicipalityUrbanityCard() : ""}
               ${!state.loadingData && !state.loadingMeta ? renderUrbanity(urbanity) : ""}
             </div>
           </section>
@@ -282,6 +403,7 @@
         state.selectedCode = selected?.code || "";
         state.selectedLabel = selected?.label || "";
         state.rows = [];
+        state.settlementRows = [];
         state.error = "";
         render();
         if (state.selectedCode) {
@@ -292,6 +414,7 @@
       document.getElementById("ageGroupSelect")?.addEventListener("change", async (event) => {
         state.ageGroup = event.target.value;
         state.rows = [];
+        state.settlementRows = [];
         state.urbanityRows = [];
         state.error = "";
         render();
@@ -352,20 +475,36 @@
       })).filter((row) => row.code && Number.isFinite(row.population));
     }
 
+    async function fetchSettlementData() {
+      const response = await fetch(`${API_URL}/hagstofa/settlements?ageGroup=${encodeURIComponent(state.ageGroup)}`, {
+        method: "GET",
+        cache: "no-store"
+      });
+      if (!response.ok) throw new Error(`Byggðakjarnagögn svöruðu ${response.status}`);
+      const payload = await response.json();
+      return (payload.rows || []).map((row) => ({
+        code: row.code || "",
+        label: row.label || "",
+        population: Number(row.population || 0)
+      })).filter((row) => row.code && row.label && Number.isFinite(row.population));
+    }
+
     async function fetchAllData() {
       state.loadingData = true;
       state.error = "";
       render();
       try {
-        const [municipalityRows, urbanityRows] = await Promise.all([
+        const [municipalityRows, urbanityRows, settlementRows] = await Promise.all([
           fetchMunicipalityData(),
-          fetchUrbanityData()
+          fetchUrbanityData(),
+          fetchSettlementData()
         ]);
         if (!municipalityRows.length) {
           throw new Error("Engar sveitarfélagatölur fundust fyrir valda síu.");
         }
         state.rows = municipalityRows;
         state.urbanityRows = urbanityRows;
+        state.settlementRows = settlementRows;
       } catch (error) {
         state.error = `Ekki tókst að sækja mannfjöldatölur fyrir ${state.selectedLabel}. ${error?.message || error}`;
       } finally {

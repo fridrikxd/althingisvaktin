@@ -200,6 +200,7 @@ const POLL_SOURCES = [
 
 const HAGSTOFA_MUNICIPALITY_AGE_TABLE = "https://px.hagstofa.is/pxis/api/v1/is/Ibuar/mannfjoldi/2_byggdir/sveitarfelog/MAN02005.px";
 const HAGSTOFA_URBANITY_TABLE = "https://px.hagstofa.is/pxis/api/v1/is/Ibuar/mannfjoldi/2_byggdir/Byggdakjarnarhverfi/MAN03280.px";
+const HAGSTOFA_SETTLEMENT_TABLE = "https://px.hagstofa.is/pxis/api/v1/is/Ibuar/mannfjoldi/2_byggdir/Byggdakjarnar/MAN030101.px";
 
 const PARTY_ALIASES = {
   "Sjalfstaedisflokkurinn": [
@@ -1240,6 +1241,84 @@ async function fetchHagstofaUrbanitySeries(ageGroup = "all") {
   return rows;
 }
 
+async function fetchHagstofaSettlementSeries(ageGroup = "all") {
+  const ageValues = ageGroup === "18plus" ? rangeValues(18, 101) : ["Alls"];
+  const body = {
+    query: [
+      {
+        code: "Byggðakjarnar",
+        selection: {
+          filter: "all",
+          values: ["*"]
+        }
+      },
+      {
+        code: "Aldur",
+        selection: {
+          filter: "item",
+          values: ageValues
+        }
+      },
+      {
+        code: "Ár",
+        selection: {
+          filter: "top",
+          values: ["1"]
+        }
+      },
+      {
+        code: "Kyn",
+        selection: {
+          filter: "item",
+          values: ["Alls"]
+        }
+      }
+    ],
+    response: {
+      format: "json-stat2"
+    }
+  };
+
+  const response = await fetch(HAGSTOFA_SETTLEMENT_TABLE, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "accept": "application/json"
+    },
+    body: JSON.stringify(body)
+  });
+
+  const text = await response.text();
+  if (!response.ok) {
+    throw new Error(`Hagstofa settlements responded ${response.status}: ${text.slice(0, 180)}`);
+  }
+
+  const payload = JSON.parse(text);
+  const values = payload.value || [];
+  const dimension = payload.dimension || {};
+  const settlementCategory = dimension["Byggðakjarnar"]?.category;
+  const settlementCodes = settlementCategory?.index ? Object.keys(settlementCategory.index) : [];
+  const settlementLabels = settlementCategory?.label || {};
+  const rows = [];
+
+  for (let settlementPos = 0; settlementPos < settlementCodes.length; settlementPos += 1) {
+    const settlementCode = settlementCodes[settlementPos];
+    let total = 0;
+    for (let agePos = 0; agePos < ageValues.length; agePos += 1) {
+      const valueIndex = settlementPos * ageValues.length + agePos;
+      total += Number(values[valueIndex] || 0);
+    }
+    rows.push({
+      code: settlementCode,
+      label: settlementLabels[settlementCode] || settlementCode,
+      population: total,
+      ageGroup
+    });
+  }
+
+  return rows;
+}
+
 export default {
   async fetch(request) {
     if (request.method === "OPTIONS") return new Response(null, { headers: corsHeaders() });
@@ -1324,6 +1403,22 @@ export default {
         return jsonResponse(
           {
             error: "Ekki tókst að sækja þéttbýlisgögn frá Hagstofu.",
+            details: String(error?.message || error)
+          },
+          500
+        );
+      }
+    }
+
+    if (url.pathname === "/hagstofa/settlements") {
+      const ageGroup = url.searchParams.get("ageGroup") || "all";
+      try {
+        const rows = await fetchHagstofaSettlementSeries(ageGroup);
+        return jsonResponse({ ageGroup, rows });
+      } catch (error) {
+        return jsonResponse(
+          {
+            error: "Ekki tókst að sækja byggðakjarnagögn frá Hagstofu.",
             details: String(error?.message || error)
           },
           500
