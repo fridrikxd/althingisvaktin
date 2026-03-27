@@ -30,6 +30,11 @@
     const SOURCE_URL = "https://hagstofa.is/talnaefni/ibuar/mannfjoldi/sveitarfelog-og-byggdakjarnar/";
     const OPEN_DATA_URL = "https://hagstofa.is/utgafur/leidbeiningar/talnagrunnur/um-api/";
 
+    const AGE_GROUPS = [
+      { value: "all", label: "Allur mannfjöldi" },
+      { value: "18plus", label: "18 ára og eldri" }
+    ];
+
     const state = {
       loadingMeta: true,
       loadingData: false,
@@ -37,7 +42,9 @@
       municipalities: [],
       selectedCode: "",
       selectedLabel: "",
+      ageGroup: "all",
       rows: [],
+      urbanityRows: [],
       lastUpdated: ""
     };
 
@@ -54,49 +61,12 @@
       return new Intl.NumberFormat("is-IS").format(Number(value || 0));
     }
 
-    function quarterLabel(value = "") {
-      return String(value).replace("Q", "Á");
-    }
-
-    function parseCsv(text = "") {
-      const lines = text.trim().split(/\r?\n/).filter(Boolean);
-      if (!lines.length) return [];
-      const delimiter = (lines[0].match(/;/g) || []).length >= (lines[0].match(/,/g) || []).length ? ";" : ",";
-      const parseLine = (line) => {
-        const out = [];
-        let current = "";
-        let inQuotes = false;
-        for (let i = 0; i < line.length; i += 1) {
-          const char = line[i];
-          if (char === '"') {
-            if (inQuotes && line[i + 1] === '"') {
-              current += '"';
-              i += 1;
-            } else {
-              inQuotes = !inQuotes;
-            }
-          } else if (char === delimiter && !inQuotes) {
-            out.push(current);
-            current = "";
-          } else {
-            current += char;
-          }
-        }
-        out.push(current);
-        return out.map((item) => item.trim());
-      };
-      const headers = parseLine(lines[0]);
-      return lines.slice(1).map((line) => {
-        const values = parseLine(line);
-        return headers.reduce((acc, header, index) => {
-          acc[header] = values[index] || "";
-          return acc;
-        }, {});
-      });
+    function yearLabel(value = "") {
+      return String(value);
     }
 
     function currentRows() {
-      return [...state.rows].sort((a, b) => a.code.localeCompare(b.code));
+      return [...state.rows].sort((a, b) => Number(a.code) - Number(b.code));
     }
 
     function latestRow() {
@@ -115,25 +85,68 @@
       return Number(current.population) - Number(previous.population);
     }
 
+    function latestUrbanityRows() {
+      return [...state.urbanityRows].sort((a, b) => b.population - a.population);
+    }
+
     function renderBars(rows) {
       if (!rows.length) return "";
       const recent = rows.slice(-8);
-      const max = Math.max(...recent.map((item) => Number(item.population)));
+      const max = Math.max(...recent.map((item) => Number(item.population)), 1);
+
       return `
-        <div class="rounded-[28px] border border-[#d7e3fb] bg-white p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]">
-          <div class="text-xs uppercase tracking-[0.22em] text-[#5b7397]">Þróun síðustu 8 ársfjórðunga</div>
-          <div class="mt-6 grid grid-cols-4 gap-4 sm:grid-cols-8">
-            ${recent.map((item) => `
-              <div class="flex flex-col items-center gap-3">
-                <div class="flex h-44 w-full items-end justify-center rounded-[20px] bg-[linear-gradient(180deg,_#f6f9ff,_#eef4ff)] px-2 py-3">
-                  <div class="w-full rounded-t-[18px] bg-[linear-gradient(180deg,_#7db6ff,_#1446dc)]" style="height:${Math.max(12, Math.round((Number(item.population) / max) * 150))}px"></div>
+        <section class="rounded-[28px] border border-[#d7e3fb] bg-white p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]">
+          <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <div class="text-xs uppercase tracking-[0.22em] text-[#5b7397]">Þróun síðustu 8 ára</div>
+              <h2 class="mt-1 text-2xl font-semibold text-[#081c40]">Mannfjöldi í súluriti</h2>
+            </div>
+            <div class="rounded-full bg-[#eef4ff] px-3 py-1 text-xs font-semibold text-[#365b93]">${escapeHtml(AGE_GROUPS.find((item) => item.value === state.ageGroup)?.label || "")}</div>
+          </div>
+          <div class="mt-8">
+            <div class="flex h-72 items-end gap-3 border-b border-l border-[#d7e3fb] px-3 pb-0 pt-6">
+              ${recent.map((item) => `
+                <div class="flex min-w-0 flex-1 flex-col items-center justify-end gap-3">
+                  <div class="text-center text-[11px] font-semibold text-[#5b7397]">${escapeHtml(formatNumber(item.population))}</div>
+                  <div class="flex w-full items-end justify-center">
+                    <div class="w-full max-w-[76px] rounded-t-[18px] bg-[linear-gradient(180deg,_#8dc1ff,_#1446dc)] shadow-[0_10px_24px_rgba(20,70,220,0.18)]" style="height:${Math.max(24, Math.round((Number(item.population) / max) * 220))}px"></div>
+                  </div>
+                  <div class="pb-3 text-center text-xs font-semibold text-[#365b93]">${escapeHtml(yearLabel(item.code))}</div>
                 </div>
-                <div class="text-center text-[11px] font-semibold text-[#365b93]">${escapeHtml(quarterLabel(item.code))}</div>
-                <div class="text-center text-xs text-slate-600">${escapeHtml(formatNumber(item.population))}</div>
+              `).join("")}
+            </div>
+          </div>
+        </section>
+      `;
+    }
+
+    function renderUrbanity(rows) {
+      if (!rows.length) return "";
+      const total = rows.reduce((sum, row) => sum + Number(row.population || 0), 0) || 1;
+      return `
+        <section class="rounded-[28px] border border-[#d7e3fb] bg-white p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]">
+          <div class="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+            <div>
+              <div class="text-xs uppercase tracking-[0.22em] text-[#5b7397]">Þéttbýli vs. dreifbýli</div>
+              <h2 class="mt-1 text-2xl font-semibold text-[#081c40]">Landsmynd eftir búsetugerð</h2>
+            </div>
+            <div class="rounded-full bg-[#eef4ff] px-3 py-1 text-xs font-semibold text-[#365b93]">Sama aldurssía notuð</div>
+          </div>
+          <p class="mt-3 text-sm leading-6 text-slate-600">Þessi kubbur sýnir landsheild eftir þéttbýlisstigi úr sérstakri Hagstofutöflu. Hann er því ekki sveitarfélagasértækur, heldur samhengi við valda aldurssíu.</p>
+          <div class="mt-6 space-y-4">
+            ${rows.map((row) => `
+              <div class="space-y-2">
+                <div class="flex items-center justify-between gap-4 text-sm">
+                  <div class="font-semibold text-[#081c40]">${escapeHtml(row.label)}</div>
+                  <div class="text-slate-600">${escapeHtml(formatNumber(row.population))} · ${escapeHtml(Math.round((row.population / total) * 100))}%</div>
+                </div>
+                <div class="h-4 rounded-full bg-[#eef4ff]">
+                  <div class="h-4 rounded-full bg-[linear-gradient(90deg,_#8dc1ff,_#1446dc)]" style="width:${Math.max(8, Math.round((row.population / total) * 100))}%"></div>
+                </div>
               </div>
             `).join("")}
           </div>
-        </div>
+        </section>
       `;
     }
 
@@ -141,11 +154,11 @@
       if (!rows.length) return "";
       const recent = [...rows].reverse().slice(0, 12);
       return `
-        <div class="rounded-[28px] border border-[#d7e3fb] bg-white p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]">
+        <section class="rounded-[28px] border border-[#d7e3fb] bg-white p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]">
           <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
             <div>
               <div class="text-xs uppercase tracking-[0.22em] text-[#5b7397]">Gögn frá Hagstofu Íslands</div>
-              <h2 class="mt-1 text-2xl font-semibold text-[#081c40]">Mannfjöldi eftir ársfjórðungum</h2>
+              <h2 class="mt-1 text-2xl font-semibold text-[#081c40]">Mannfjöldi eftir árum</h2>
             </div>
             <a href="${escapeHtml(SOURCE_URL)}" target="_blank" rel="noopener noreferrer" class="rounded-full border border-[#c6d9ff] bg-[#f4f8ff] px-4 py-2 text-sm font-semibold text-[#1446dc] transition hover:border-[#3a8dde] hover:bg-white">Opna upprunagögn</a>
           </div>
@@ -153,27 +166,28 @@
             <table class="min-w-full border-separate border-spacing-y-3">
               <thead>
                 <tr class="text-left text-xs uppercase tracking-[0.18em] text-slate-400">
-                  <th class="px-4">Tímabil</th>
+                  <th class="px-4">Ár</th>
                   <th class="px-4">Mannfjöldi</th>
                 </tr>
               </thead>
               <tbody>
                 ${recent.map((item) => `
                   <tr class="rounded-2xl border border-slate-200 bg-[#f9fbff]">
-                    <td class="rounded-l-2xl px-4 py-3 text-sm font-semibold text-[#081c40]">${escapeHtml(quarterLabel(item.code))}</td>
+                    <td class="rounded-l-2xl px-4 py-3 text-sm font-semibold text-[#081c40]">${escapeHtml(yearLabel(item.code))}</td>
                     <td class="rounded-r-2xl px-4 py-3 text-sm text-slate-700">${escapeHtml(formatNumber(item.population))}</td>
                   </tr>
                 `).join("")}
               </tbody>
             </table>
           </div>
-        </div>
+        </section>
       `;
     }
 
     function render() {
       const latest = latestRow();
       const change = latestChange();
+      const urbanity = latestUrbanityRows();
       const app = document.getElementById("app");
 
       app.innerHTML = `
@@ -183,7 +197,7 @@
               <div>
                 <div class="inline-flex rounded-full border border-[#6f9cf0] bg-[#081c40] px-3 py-1 text-xs font-semibold uppercase tracking-[0.26em] text-white">Hagstofa Íslands</div>
                 <h1 class="mt-5 max-w-3xl text-4xl font-semibold tracking-tight sm:text-5xl">Mannfjöldi sveitarfélaga</h1>
-                <p class="mt-4 max-w-2xl text-sm leading-6 text-slate-300">Ný undirsíða sem tengist PX-Web API Hagstofu Íslands og sækir mannfjöldatölur eftir sveitarfélögum beint úr opinberri töflu um mannfjölda eftir sveitarfélögum, kyni, ríkisfangi og ársfjórðungum.</p>
+                <p class="mt-4 max-w-2xl text-sm leading-6 text-slate-300">Þessi síða notar nú sveitarfélaga- og aldurstöflu Hagstofu Íslands, þannig að þú getur skoðað bæði heildarmannfjölda og 18 ára+ í hverju sveitarfélagi. Að auki birtist samhengi fyrir þéttbýli og dreifbýli á landsvísu.</p>
                 <div class="mt-6 flex flex-wrap gap-2">
                   <a href="${escapeHtml(OPEN_DATA_URL)}" target="_blank" rel="noopener noreferrer" class="rounded-full border border-white bg-white px-4 py-2 text-sm font-semibold text-[#00258c]">Opið gagnaaðgengi</a>
                   <a href="${escapeHtml(SOURCE_URL)}" target="_blank" rel="noopener noreferrer" class="rounded-full border border-[#6f9cf0] bg-[#081c40] px-4 py-2 text-sm font-semibold text-white">Talnaefni sveitarfélaga</a>
@@ -198,17 +212,23 @@
                       ${(state.municipalities.length ? state.municipalities : [{ code: "", label: state.loadingMeta ? "Sæki sveitarfélagalista..." : "Engin gögn fundust" }]).map((item) => `<option value="${escapeHtml(item.code)}" ${item.code === state.selectedCode ? "selected" : ""}>${escapeHtml(item.label)}</option>`).join("")}
                     </select>
                   </label>
+                  <label class="block">
+                    <span class="mb-2 block text-xs uppercase tracking-[0.18em] text-[#9bb6ea]">Sía</span>
+                    <select id="ageGroupSelect" class="w-full rounded-2xl border border-[#2b57c6] bg-[#0c2358] px-4 py-3 text-sm text-white">
+                      ${AGE_GROUPS.map((item) => `<option value="${escapeHtml(item.value)}" ${item.value === state.ageGroup ? "selected" : ""}>${escapeHtml(item.label)}</option>`).join("")}
+                    </select>
+                  </label>
                   <div class="grid gap-3 sm:grid-cols-2">
                     <div class="rounded-2xl border border-[#2047a8] bg-[#0c2358] p-4">
-                      <div class="text-xs uppercase tracking-[0.2em] text-[#9bb6ea]">Nýjasta tímabil</div>
-                      <div class="mt-2 text-xl font-semibold">${latest ? escapeHtml(quarterLabel(latest.code)) : "—"}</div>
+                      <div class="text-xs uppercase tracking-[0.2em] text-[#9bb6ea]">Nýjasta ár</div>
+                      <div class="mt-2 text-xl font-semibold">${latest ? escapeHtml(yearLabel(latest.code)) : "—"}</div>
                     </div>
                     <div class="rounded-2xl border border-[#2047a8] bg-[#0c2358] p-4">
-                      <div class="text-xs uppercase tracking-[0.2em] text-[#9bb6ea]">Mannfjöldi</div>
+                      <div class="text-xs uppercase tracking-[0.2em] text-[#9bb6ea]">${state.ageGroup === "18plus" ? "18 ára+ fjöldi" : "Mannfjöldi"}</div>
                       <div class="mt-2 text-xl font-semibold">${latest ? escapeHtml(formatNumber(latest.population)) : "—"}</div>
                     </div>
                     <div class="rounded-2xl border border-[#2047a8] bg-[#0c2358] p-4">
-                      <div class="text-xs uppercase tracking-[0.2em] text-[#9bb6ea]">Breyting frá fyrra tímabili</div>
+                      <div class="text-xs uppercase tracking-[0.2em] text-[#9bb6ea]">Breyting frá fyrra ári</div>
                       <div class="mt-2 text-xl font-semibold">${change === null ? "—" : `${change > 0 ? "+" : ""}${escapeHtml(formatNumber(change))}`}</div>
                     </div>
                     <div class="rounded-2xl border border-[#2047a8] bg-[#0c2358] p-4">
@@ -232,24 +252,26 @@
             </section>
           ` : ""}
 
-          <section class="grid gap-6 xl:grid-cols-[0.78fr_1.22fr]">
-            <div class="rounded-[32px] border border-[#d7e3fb] bg-[linear-gradient(180deg,_#ffffff,_#f7faff)] p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]">
-              <div class="text-xs uppercase tracking-[0.24em] text-[#5b7397]">Hvernig þetta virkar</div>
-              <h2 class="mt-1 text-2xl font-semibold text-[#081c40]">Tenging við Hagstofu API</h2>
-              <div class="mt-5 space-y-4 text-sm leading-7 text-slate-700">
-                <p>Þessi síða sækir fyrst metadata úr PX-Web API Hagstofu Íslands og fyllir sveitarfélagalistann út frá opinberu flokkuninni í töflunni.</p>
-                <p>Síðan reynir hún að sækja mannfjöldatölur fyrir valið sveitarfélag yfir ársfjórðunga úr sömu töflu og sýnir nýjustu stöðuna, breytingu og þróun í tíma.</p>
-                <p>Ef gagnakallið sjálft bilar færðu samt beina leið í upprunatöfluna og API leiðbeiningarnar frá Hagstofunni.</p>
-              </div>
-            </div>
-
+          <section class="grid gap-6 xl:grid-cols-[1.06fr_0.94fr]">
             <div class="space-y-6">
               ${state.loadingData || state.loadingMeta ? `
                 <div class="rounded-[32px] border border-[#d7e3fb] bg-white p-6 text-sm text-[#60779a] shadow-[0_18px_50px_rgba(0,37,140,0.08)]">
-                  Sæki metadata og mannfjöldatölur frá Hagstofu Íslands...
+                  Sæki metadata, sveitarfélagatölur og þéttbýlisgögn frá Hagstofu Íslands...
                 </div>
               ` : renderBars(currentRows())}
               ${!state.loadingData && !state.loadingMeta ? renderTable(currentRows()) : ""}
+            </div>
+
+            <div class="space-y-6">
+              <section class="rounded-[32px] border border-[#d7e3fb] bg-[linear-gradient(180deg,_#ffffff,_#f7faff)] p-6 shadow-[0_18px_50px_rgba(0,37,140,0.08)]">
+                <div class="text-xs uppercase tracking-[0.24em] text-[#5b7397]">Hvernig þetta virkar</div>
+                <h2 class="mt-1 text-2xl font-semibold text-[#081c40]">Sveitarfélög, aldur og kjósendur</h2>
+                <div class="mt-5 space-y-4 text-sm leading-7 text-slate-700">
+                  <p>Heildarmannfjöldi og 18 ára+ koma úr sérstakri sveitarfélaga- og aldurstöflu Hagstofunnar. Þannig er hægt að horfa á nálgun við fjölda kosningabærra í hverju sveitarfélagi.</p>
+                  <p>Þéttbýli vs. dreifbýli kemur úr annarri Hagstofutöflu um þéttbýlisstig. Sá kubbur er því landsheildarsamhengi, ekki brotinn niður á einstök sveitarfélög.</p>
+                </div>
+              </section>
+              ${!state.loadingData && !state.loadingMeta ? renderUrbanity(urbanity) : ""}
             </div>
           </section>
         </div>
@@ -262,12 +284,25 @@
         state.rows = [];
         state.error = "";
         render();
-        if (state.selectedCode) await fetchPopulationData(state.selectedCode, state.selectedLabel);
+        if (state.selectedCode) {
+          await fetchAllData();
+        }
+      });
+
+      document.getElementById("ageGroupSelect")?.addEventListener("change", async (event) => {
+        state.ageGroup = event.target.value;
+        state.rows = [];
+        state.urbanityRows = [];
+        state.error = "";
+        render();
+        if (state.selectedCode) {
+          await fetchAllData();
+        }
       });
     }
 
     async function fetchMetadata() {
-      const response = await fetch(`${API_URL}/hagstofa/metadata`, { method: "GET", cache: "no-store" });
+      const response = await fetch(`${API_URL}/hagstofa/municipality-age-metadata`, { method: "GET", cache: "no-store" });
       if (!response.ok) throw new Error(`Metadata svaraði ${response.status}`);
       const metadata = await response.json();
       const municipalityVariable = metadata.variables.find((item) => item.code === "Sveitarfélag");
@@ -278,36 +313,58 @@
           code,
           label: String(municipalityVariable.valueTexts[index] || "").trim()
         }))
-        .filter((item) => item.code !== "IS" && item.code !== "IS001" && item.code !== "IS002" && item.label);
+        .filter((item) => item.code !== "9999" && item.label && item.label !== "Alls");
 
       const initial = state.municipalities.find((item) => item.label === "Reykjavíkurborg") || state.municipalities[0];
       state.selectedCode = initial?.code || "";
       state.selectedLabel = initial?.label || "";
-      state.lastUpdated = "MAN10001 · 2011-2025";
+      state.lastUpdated = "MAN02005 / MAN03280 · 2026";
     }
 
-    async function fetchPopulationData(code, label) {
+    async function fetchMunicipalityData() {
+      const response = await fetch(`${API_URL}/hagstofa/municipality-age?code=${encodeURIComponent(state.selectedCode)}&ageGroup=${encodeURIComponent(state.ageGroup)}`, {
+        method: "GET",
+        cache: "no-store"
+      });
+      if (!response.ok) throw new Error(`Sveitarfélagagögn svöruðu ${response.status}`);
+      const payload = await response.json();
+      return (payload.rows || []).map((row) => ({
+        code: row.code || "",
+        municipality: row.municipalityLabel || state.selectedLabel,
+        population: Number(row.population || 0)
+      })).filter((row) => row.code && Number.isFinite(row.population));
+    }
+
+    async function fetchUrbanityData() {
+      const response = await fetch(`${API_URL}/hagstofa/urbanity?ageGroup=${encodeURIComponent(state.ageGroup)}`, {
+        method: "GET",
+        cache: "no-store"
+      });
+      if (!response.ok) throw new Error(`Þéttbýlisgögn svöruðu ${response.status}`);
+      const payload = await response.json();
+      return (payload.rows || []).map((row) => ({
+        code: row.code || "",
+        label: row.label || "",
+        population: Number(row.population || 0)
+      })).filter((row) => row.code && Number.isFinite(row.population));
+    }
+
+    async function fetchAllData() {
       state.loadingData = true;
       state.error = "";
       render();
       try {
-        const response = await fetch(`${API_URL}/hagstofa/population?code=${encodeURIComponent(code)}`, {
-          method: "GET",
-          cache: "no-store"
-        });
-
-        if (!response.ok) throw new Error(`Gagnakall svaraði ${response.status}`);
-        const payload = await response.json();
-        const rows = (payload.rows || []).map((row) => ({
-          code: row.code || "",
-          municipality: row.municipalityLabel || label,
-          population: Number(row.population || 0)
-        })).filter((row) => row.code && Number.isFinite(row.population));
-
-        if (!rows.length) throw new Error("Engar mannfjöldatölur fundust fyrir valið sveitarfélag.");
-        state.rows = rows;
+        const [municipalityRows, urbanityRows] = await Promise.all([
+          fetchMunicipalityData(),
+          fetchUrbanityData()
+        ]);
+        if (!municipalityRows.length) {
+          throw new Error("Engar sveitarfélagatölur fundust fyrir valda síu.");
+        }
+        state.rows = municipalityRows;
+        state.urbanityRows = urbanityRows;
       } catch (error) {
-        state.error = `Ekki tókst að sækja mannfjöldatölur beint úr Hagstofu fyrir ${label}. ${error?.message || error}`;
+        state.error = `Ekki tókst að sækja mannfjöldatölur fyrir ${state.selectedLabel}. ${error?.message || error}`;
       } finally {
         state.loadingData = false;
         render();
@@ -321,7 +378,7 @@
         state.loadingMeta = false;
         render();
         if (state.selectedCode) {
-          await fetchPopulationData(state.selectedCode, state.selectedLabel);
+          await fetchAllData();
         }
       } catch (error) {
         state.loadingMeta = false;

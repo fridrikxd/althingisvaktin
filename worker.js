@@ -198,7 +198,8 @@ const POLL_SOURCES = [
   }
 ];
 
-const HAGSTOFA_POPULATION_TABLE = "https://px.hagstofa.is/pxis/api/v1/is/Ibuar/mannfjoldi/2_byggdir/sveitarfelog/MAN10001.px";
+const HAGSTOFA_MUNICIPALITY_AGE_TABLE = "https://px.hagstofa.is/pxis/api/v1/is/Ibuar/mannfjoldi/2_byggdir/sveitarfelog/MAN02005.px";
+const HAGSTOFA_URBANITY_TABLE = "https://px.hagstofa.is/pxis/api/v1/is/Ibuar/mannfjoldi/2_byggdir/Byggdakjarnarhverfi/MAN03280.px";
 
 const PARTY_ALIASES = {
   "Sjalfstaedisflokkurinn": [
@@ -390,6 +391,57 @@ function parseHtmlArticles(htmlText, baseUrl) {
 
   const ldJsonBlocks = [...htmlText.matchAll(/<script[^>]*type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/gi)];
   for (const match of ldJsonBlocks) {
+    if (url.pathname === "/hagstofa/municipality-age-metadata") {
+      try {
+        const metadata = await fetchHagstofaMunicipalityAgeMetadata();
+        return jsonResponse(metadata);
+      } catch (error) {
+        return jsonResponse(
+          {
+            error: "Ekki tókst að sækja sveitarfélaga- og aldursmetadata frá Hagstofu.",
+            details: String(error?.message || error)
+          },
+          500
+        );
+      }
+    }
+
+    if (url.pathname === "/hagstofa/municipality-age") {
+      const code = url.searchParams.get("code");
+      const ageGroup = url.searchParams.get("ageGroup") || "all";
+      if (!code) {
+        return jsonResponse({ error: "Vantar sveitarfélagakóða." }, 400);
+      }
+      try {
+        const rows = await fetchHagstofaMunicipalityAgeSeries(code, ageGroup);
+        return jsonResponse({ code, ageGroup, rows });
+      } catch (error) {
+        return jsonResponse(
+          {
+            error: "Ekki tókst að sækja sveitarfélaga- og aldursgögn frá Hagstofu.",
+            details: String(error?.message || error)
+          },
+          500
+        );
+      }
+    }
+
+    if (url.pathname === "/hagstofa/urbanity") {
+      const ageGroup = url.searchParams.get("ageGroup") || "all";
+      try {
+        const rows = await fetchHagstofaUrbanitySeries(ageGroup);
+        return jsonResponse({ ageGroup, rows });
+      } catch (error) {
+        return jsonResponse(
+          {
+            error: "Ekki tókst að sækja þéttbýlisgögn frá Hagstofu.",
+            details: String(error?.message || error)
+          },
+          500
+        );
+      }
+    }
+
     try {
       const payload = JSON.parse(match[1].trim());
       const nodes = Array.isArray(payload) ? payload : payload?.["@graph"] || [payload];
@@ -902,6 +954,184 @@ async function fetchHagstofaPopulationSeries(code) {
     });
   }
   return rows.filter((row) => row.code);
+}
+
+function rangeValues(start, endInclusive) {
+  const values = [];
+  for (let value = start; value <= endInclusive; value += 1) values.push(String(value));
+  return values;
+}
+
+async function fetchHagstofaMunicipalityAgeMetadata() {
+  const response = await fetch(HAGSTOFA_MUNICIPALITY_AGE_TABLE, {
+    headers: { "accept": "application/json" },
+    cf: { cacheTtl: 3600, cacheEverything: true }
+  });
+  if (!response.ok) {
+    throw new Error(`Hagstofa municipality-age metadata responded ${response.status}`);
+  }
+  return response.json();
+}
+
+async function fetchHagstofaMunicipalityAgeSeries(code, ageGroup = "all") {
+  const ageValues = ageGroup === "18plus" ? rangeValues(18, 109) : ["-1"];
+  const body = {
+    query: [
+      {
+        code: "Sveitarfélag",
+        selection: {
+          filter: "item",
+          values: [code]
+        }
+      },
+      {
+        code: "Aldur",
+        selection: {
+          filter: "item",
+          values: ageValues
+        }
+      },
+      {
+        code: "Ár",
+        selection: {
+          filter: "top",
+          values: ["8"]
+        }
+      },
+      {
+        code: "Kyn",
+        selection: {
+          filter: "item",
+          values: ["0"]
+        }
+      }
+    ],
+    response: {
+      format: "json-stat2"
+    }
+  };
+
+  const response = await fetch(HAGSTOFA_MUNICIPALITY_AGE_TABLE, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "accept": "application/json"
+    },
+    body: JSON.stringify(body)
+  });
+
+  const text = await response.text();
+  if (!response.ok) {
+    throw new Error(`Hagstofa municipality-age responded ${response.status}: ${text.slice(0, 180)}`);
+  }
+
+  const payload = JSON.parse(text);
+  const values = payload.value || [];
+  const dimension = payload.dimension || {};
+  const municipalityCategory = dimension["Sveitarfélag"]?.category;
+  const yearCategory = dimension["Ár"]?.category;
+  const municipalityCodes = municipalityCategory?.index ? Object.keys(municipalityCategory.index) : [];
+  const municipalityLabels = municipalityCategory?.label || {};
+  const yearCodes = yearCategory?.index ? Object.keys(yearCategory.index) : [];
+  const yearLabels = yearCategory?.label || {};
+  const municipalityCode = municipalityCodes[0] || code;
+  const municipalityLabel = municipalityLabels[municipalityCode] || code;
+  const yearTotals = new Map(yearCodes.map((yearCode) => [yearCode, 0]));
+
+  for (let agePos = 0; agePos < ageValues.length; agePos += 1) {
+    for (let yearPos = 0; yearPos < yearCodes.length; yearPos += 1) {
+      const valueIndex = agePos * yearCodes.length + yearPos;
+      const yearCode = yearCodes[yearPos];
+      yearTotals.set(yearCode, (yearTotals.get(yearCode) || 0) + Number(values[valueIndex] || 0));
+    }
+  }
+
+  return yearCodes.map((yearCode) => ({
+    code: yearCode,
+    label: yearLabels[yearCode] || yearCode,
+    municipalityCode,
+    municipalityLabel,
+    population: yearTotals.get(yearCode) || 0,
+    ageGroup
+  })).filter((row) => row.code);
+}
+
+async function fetchHagstofaUrbanitySeries(ageGroup = "all") {
+  const ageValues = ageGroup === "18plus" ? rangeValues(18, 109) : ["-1"];
+  const body = {
+    query: [
+      {
+        code: "Þéttbýli",
+        selection: {
+          filter: "item",
+          values: ["1", "2", "3"]
+        }
+      },
+      {
+        code: "Aldur",
+        selection: {
+          filter: "item",
+          values: ageValues
+        }
+      },
+      {
+        code: "Ár",
+        selection: {
+          filter: "top",
+          values: ["1"]
+        }
+      },
+      {
+        code: "Kyn",
+        selection: {
+          filter: "item",
+          values: ["0"]
+        }
+      }
+    ],
+    response: {
+      format: "json-stat2"
+    }
+  };
+
+  const response = await fetch(HAGSTOFA_URBANITY_TABLE, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "accept": "application/json"
+    },
+    body: JSON.stringify(body)
+  });
+
+  const text = await response.text();
+  if (!response.ok) {
+    throw new Error(`Hagstofa urbanity responded ${response.status}: ${text.slice(0, 180)}`);
+  }
+
+  const payload = JSON.parse(text);
+  const values = payload.value || [];
+  const dimension = payload.dimension || {};
+  const urbanityCategory = dimension["Þéttbýli"]?.category;
+  const urbanityCodes = urbanityCategory?.index ? Object.keys(urbanityCategory.index) : [];
+  const urbanityLabels = urbanityCategory?.label || {};
+  const rows = [];
+
+  for (let urbanityPos = 0; urbanityPos < urbanityCodes.length; urbanityPos += 1) {
+    const urbanityCode = urbanityCodes[urbanityPos];
+    let total = 0;
+    for (let agePos = 0; agePos < ageValues.length; agePos += 1) {
+      const valueIndex = urbanityPos * ageValues.length + agePos;
+      total += Number(values[valueIndex] || 0);
+    }
+    rows.push({
+      code: urbanityCode,
+      label: urbanityLabels[urbanityCode] || urbanityCode,
+      population: total,
+      ageGroup
+    });
+  }
+
+  return rows;
 }
 
 export default {
