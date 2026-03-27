@@ -26,7 +26,7 @@
   <main id="app" class="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8"></main>
 
   <script>
-    const API_URL = "https://px.hagstofa.is/pxis/api/v1/is/Ibuar/mannfjoldi/2_byggdir/sveitarfelog/MAN10001.px";
+    const API_URL = "https://althingisvaktin-api.fridriksi.workers.dev";
     const SOURCE_URL = "https://hagstofa.is/talnaefni/ibuar/mannfjoldi/sveitarfelog-og-byggdakjarnar/";
     const OPEN_DATA_URL = "https://hagstofa.is/utgafur/leidbeiningar/talnagrunnur/um-api/";
 
@@ -267,7 +267,7 @@
     }
 
     async function fetchMetadata() {
-      const response = await fetch(API_URL, { method: "GET", cache: "no-store" });
+      const response = await fetch(`${API_URL}/hagstofa/metadata`, { method: "GET", cache: "no-store" });
       if (!response.ok) throw new Error(`Metadata svaraði ${response.status}`);
       const metadata = await response.json();
       const municipalityVariable = metadata.variables.find((item) => item.code === "Sveitarfélag");
@@ -291,39 +291,17 @@
       state.error = "";
       render();
       try {
-        const quarterValues = ["2024Q1", "2024Q2", "2024Q3", "2024Q4", "2025Q1", "2025Q2", "2025Q3", "2025Q4"];
-        const body = {
-          query: [
-            {
-              code: "Ársfjórðungur",
-              selection: { filter: "item", values: quarterValues }
-            },
-            {
-              code: "Sveitarfélag",
-              selection: { filter: "item", values: [code] }
-            },
-            {
-              code: "Kyn og ríkisfang",
-              selection: { filter: "item", values: ["0"] }
-            }
-          ],
-          response: {
-            format: "csv"
-          }
-        };
-
-        const response = await fetch(API_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(body)
+        const response = await fetch(`${API_URL}/hagstofa/population?code=${encodeURIComponent(code)}`, {
+          method: "GET",
+          cache: "no-store"
         });
 
         if (!response.ok) throw new Error(`Gagnakall svaraði ${response.status}`);
-        const csv = await response.text();
-        const rows = parseCsv(csv).map((row) => ({
-          code: row["Ársfjórðungur"] || row["Arsfjorthungur"] || "",
-          municipality: row["Sveitarfélag"] || label,
-          population: Number(Object.values(row).at(-1) || 0)
+        const payload = await response.json();
+        const rows = (payload.rows || []).map((row) => ({
+          code: row.code || "",
+          municipality: row.municipalityLabel || label,
+          population: Number(row.population || 0)
         })).filter((row) => row.code && Number.isFinite(row.population));
 
         if (!rows.length) throw new Error("Engar mannfjöldatölur fundust fyrir valið sveitarfélag.");

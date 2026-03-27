@@ -198,6 +198,8 @@ const POLL_SOURCES = [
   }
 ];
 
+const HAGSTOFA_POPULATION_TABLE = "https://px.hagstofa.is/pxis/api/v1/is/Ibuar/mannfjoldi/2_byggdir/sveitarfelog/MAN10001.px";
+
 const PARTY_ALIASES = {
   "Sjalfstaedisflokkurinn": [
     "sjalfstaedisflokkurinn",
@@ -297,6 +299,13 @@ function corsHeaders() {
     "Access-Control-Allow-Headers": "*",
     "Cache-Control": "no-store"
   };
+}
+
+function jsonResponse(payload, status = 200) {
+  return new Response(JSON.stringify(payload, null, 2), {
+    status,
+    headers: corsHeaders()
+  });
 }
 
 function stripAccents(str = "") {
@@ -806,9 +815,134 @@ async function fetchNewsSource(feedDef) {
   return [];
 }
 
+async function fetchHagstofaMetadata() {
+  const response = await fetch(HAGSTOFA_POPULATION_TABLE, {
+    headers: { "accept": "application/json" },
+    cf: { cacheTtl: 3600, cacheEverything: true }
+  });
+  if (!response.ok) {
+    throw new Error(`Hagstofa metadata responded ${response.status}`);
+  }
+  return response.json();
+}
+
+async function fetchHagstofaPopulationSeries(code) {
+  const body = {
+    query: [
+      {
+        code: "Ársfjórðungur",
+        selection: {
+          filter: "top",
+          values: ["8"]
+        }
+      },
+      {
+        code: "Sveitarfélag",
+        selection: {
+          filter: "item",
+          values: [code]
+        }
+      },
+      {
+        code: "Kyn og ríkisfang",
+        selection: {
+          filter: "item",
+          values: ["0"]
+        }
+      }
+    ],
+    response: {
+      format: "json-stat2"
+    }
+  };
+
+  const response = await fetch(HAGSTOFA_POPULATION_TABLE, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "accept": "application/json"
+    },
+    body: JSON.stringify(body)
+  });
+
+  const text = await response.text();
+  if (!response.ok) {
+    throw new Error(`Hagstofa population responded ${response.status}: ${text.slice(0, 180)}`);
+  }
+
+  const payload = JSON.parse(text);
+  const ids = payload.id || [];
+  const size = payload.size || [];
+  const values = payload.value || [];
+  const dimension = payload.dimension || {};
+  const quarterIndex = ids.indexOf("Ársfjórðungur");
+  const municipalityIndex = ids.indexOf("Sveitarfélag");
+  const quarterCategory = dimension["Ársfjórðungur"]?.category;
+  const municipalityCategory = dimension["Sveitarfélag"]?.category;
+  const quarterCodes = quarterCategory?.index ? Object.keys(quarterCategory.index) : [];
+  const quarterLabels = quarterCategory?.label || {};
+  const municipalityCodes = municipalityCategory?.index ? Object.keys(municipalityCategory.index) : [];
+  const municipalityLabels = municipalityCategory?.label || {};
+  const quarterCount = size[quarterIndex] || quarterCodes.length;
+  const municipalityCode = municipalityCodes[0] || code;
+  const municipalityLabel = municipalityLabels[municipalityCode] || code;
+
+  const rows = [];
+  for (let quarterPos = 0; quarterPos < quarterCount; quarterPos += 1) {
+    const quarterCode = quarterCodes[quarterPos];
+    const quarterLabel = quarterLabels[quarterCode] || quarterCode;
+    const valueIndex = municipalityIndex === 0 ? quarterPos : quarterPos;
+    const population = values[valueIndex];
+    rows.push({
+      code: quarterCode,
+      label: quarterLabel,
+      municipalityCode,
+      municipalityLabel,
+      population: Number(population || 0)
+    });
+  }
+  return rows.filter((row) => row.code);
+}
+
 export default {
   async fetch(request) {
     if (request.method === "OPTIONS") return new Response(null, { headers: corsHeaders() });
+
+    const url = new URL(request.url);
+
+    if (url.pathname === "/hagstofa/metadata") {
+      try {
+        const metadata = await fetchHagstofaMetadata();
+        return jsonResponse(metadata);
+      } catch (error) {
+        return jsonResponse(
+          {
+            error: "Ekki tókst að sækja metadata frá Hagstofu.",
+            details: String(error?.message || error)
+          },
+          500
+        );
+      }
+    }
+
+    if (url.pathname === "/hagstofa/population") {
+      const code = url.searchParams.get("code");
+      if (!code) {
+        return jsonResponse({ error: "Vantar sveitarfélagakóða." }, 400);
+      }
+      try {
+        const rows = await fetchHagstofaPopulationSeries(code);
+        return jsonResponse({ code, rows });
+      } catch (error) {
+        return jsonResponse(
+          {
+            error: "Ekki tókst að sækja mannfjöldatölur frá Hagstofu.",
+            details: String(error?.message || error)
+          },
+          500
+        );
+      }
+    }
 
     try {
       const newsResults = await Promise.allSettled(NEWS_FEEDS.map(fetchNewsSource));
