@@ -202,6 +202,7 @@ const HAGSTOFA_MUNICIPALITY_AGE_TABLE = "https://px.hagstofa.is/pxis/api/v1/is/I
 const HAGSTOFA_URBANITY_TABLE = "https://px.hagstofa.is/pxis/api/v1/is/Ibuar/mannfjoldi/2_byggdir/Byggdakjarnarhverfi/MAN03280.px";
 const HAGSTOFA_SETTLEMENT_TABLE = "https://px.hagstofa.is/pxis/api/v1/is/Ibuar/mannfjoldi/2_byggdir/Byggdakjarnar/MAN030101.px";
 const HAGSTOFA_CITIZENSHIP_TABLE = "https://px.hagstofa.is/pxis/api/v1/is/Ibuar/mannfjoldi/3_bakgrunnur/Rikisfang/MAN04203.px";
+const HAGSTOFA_CITIZENSHIP_AGE_TABLE = "https://px.hagstofa.is/pxis/api/v1/is/Ibuar/mannfjoldi/3_bakgrunnur/Rikisfang/MAN04208.px";
 
 const PARTY_ALIASES = {
   "Sjalfstaedisflokkurinn": [
@@ -1035,6 +1036,7 @@ async function fetchHagstofaPopulationSeries(code) {
   const size = payload.size || [];
   const values = payload.value || [];
   const dimension = payload.dimension || {};
+  const ageCategory = dimension["Aldur"]?.category;
   const quarterIndex = ids.indexOf("Ársfjórðungur");
   const municipalityIndex = ids.indexOf("Sveitarfélag");
   const quarterCategory = dimension["Ársfjórðungur"]?.category;
@@ -1251,6 +1253,13 @@ async function fetchHagstofaSettlementSeries(ageGroup = "all") {
         selection: {
           filter: "all",
           values: ["*"]
+        }
+      },
+      {
+        code: "Aldur",
+        selection: {
+          filter: "item",
+          values: ageValues
         }
       },
       {
@@ -1493,7 +1502,8 @@ async function fetchHagstofaSettlementGenderBreakdown(ageGroup = "all") {
   return rows;
 }
 
-async function fetchHagstofaCitizenshipGenderBreakdown(code) {
+async function fetchHagstofaCitizenshipGenderBreakdownLegacy(code, ageGroup = "all") {
+  const ageValues = ageGroup === "18plus" ? rangeValues(18, 109) : ["Alls"];
   const body = {
     query: [
       {
@@ -1530,7 +1540,7 @@ async function fetchHagstofaCitizenshipGenderBreakdown(code) {
     }
   };
 
-  const response = await fetch(HAGSTOFA_CITIZENSHIP_TABLE, {
+  const response = await fetch(HAGSTOFA_CITIZENSHIP_AGE_TABLE, {
     method: "POST",
     headers: {
       "content-type": "application/json",
@@ -1628,6 +1638,176 @@ async function fetchHagstofaCitizenshipGenderBreakdown(code) {
     citizenship: {
       icelandic,
       foreign
+    },
+    gender: {
+      men,
+      women,
+      other: otherGender
+    },
+    byCitizenship,
+    byGender
+  };
+}
+
+async function fetchHagstofaCitizenshipGenderBreakdown(code, ageGroup = "all") {
+  const ageValues = ageGroup === "18plus" ? rangeValues(18, 109) : ["Alls"];
+  const body = {
+    query: [
+      {
+        code: "Sveitarfélag",
+        selection: {
+          filter: "item",
+          values: [code]
+        }
+      },
+      {
+        code: "Ríkisfang",
+        selection: {
+          filter: "all",
+          values: ["*"]
+        }
+      },
+      {
+        code: "Aldur",
+        selection: {
+          filter: "item",
+          values: ageValues
+        }
+      },
+      {
+        code: "Ár",
+        selection: {
+          filter: "top",
+          values: ["1"]
+        }
+      },
+      {
+        code: "Kyn",
+        selection: {
+          filter: "all",
+          values: ["*"]
+        }
+      }
+    ],
+    response: {
+      format: "json-stat2"
+    }
+  };
+
+  const response = await fetch(HAGSTOFA_CITIZENSHIP_AGE_TABLE, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "accept": "application/json"
+    },
+    body: JSON.stringify(body)
+  });
+
+  const text = await response.text();
+  if (!response.ok) {
+    throw new Error(`Hagstofa citizenship responded ${response.status}: ${text.slice(0, 180)}`);
+  }
+
+  const payload = JSON.parse(text);
+  const values = payload.value || [];
+  const dimension = payload.dimension || {};
+  const citizenshipCategory = dimension["Ríkisfang"]?.category;
+  const ageCategory = dimension["Aldur"]?.category;
+  const genderCategory = dimension["Kyn"]?.category;
+  const yearCategory = dimension["Ár"]?.category;
+  const municipalityCategory = dimension["Sveitarfélag"]?.category;
+
+  const citizenshipCodes = citizenshipCategory?.index ? Object.keys(citizenshipCategory.index) : [];
+  const citizenshipLabels = citizenshipCategory?.label || {};
+  const ageCodes = ageCategory?.index ? Object.keys(ageCategory.index) : [];
+  const ageIndex = ageCategory?.index || {};
+  const genderCodes = genderCategory?.index ? Object.keys(genderCategory.index) : [];
+  const genderIndex = genderCategory?.index || {};
+  const genderLabels = genderCategory?.label || {};
+  const yearCode = yearCategory?.index ? Object.keys(yearCategory.index)[0] : "";
+  const yearLabel = yearCategory?.label?.[yearCode] || yearCode;
+  const municipalityCode = municipalityCategory?.index ? Object.keys(municipalityCategory.index)[0] : code;
+  const municipalityLabel = municipalityCategory?.label?.[municipalityCode] || code;
+  const byCitizenship = [];
+  const byGender = [];
+  const genderStride = genderCodes.length || 1;
+  const ageStride = (ageCodes.length || 1) * genderStride;
+
+  let totalAll = 0;
+  let icelandic = 0;
+  let men = 0;
+  let women = 0;
+  let otherGender = 0;
+
+  const valueAt = (citizenshipCode, ageCode, genderCode) => {
+    const citizenshipPos = citizenshipCategory?.index?.[citizenshipCode];
+    const agePos = ageIndex?.[ageCode];
+    const genderPos = genderIndex?.[genderCode];
+    if (citizenshipPos == null || agePos == null || genderPos == null) return 0;
+    const valueIndex = citizenshipPos * ageStride + agePos * genderStride + genderPos;
+    return Number(values[valueIndex] || 0);
+  };
+
+  const allCitizenshipCode = citizenshipCodes.find(
+    (citizenshipCode) => (citizenshipLabels[citizenshipCode] || citizenshipCode) === "Alls"
+  );
+
+  for (const citizenshipCode of citizenshipCodes) {
+    const citizenshipLabel = citizenshipLabels[citizenshipCode] || citizenshipCode;
+    let totalForCitizenship = 0;
+
+    for (const ageCode of ageCodes) {
+      for (const genderCode of genderCodes) {
+        const value = valueAt(citizenshipCode, ageCode, genderCode);
+        const genderLabel = genderLabels[genderCode] || genderCode;
+
+        if (genderLabel === "Alls") {
+          totalForCitizenship += value;
+        }
+
+        if (citizenshipLabel === "Alls") {
+          if (genderLabel === "Alls") totalAll += value;
+          if (genderLabel === "Karlar") men += value;
+          if (genderLabel === "Konur") women += value;
+          if (genderLabel === "Kynsegin/annað") otherGender += value;
+        }
+      }
+    }
+
+    byCitizenship.push({
+      code: citizenshipCode,
+      label: citizenshipLabel,
+      population: totalForCitizenship
+    });
+
+    if (citizenshipLabel === "Íslenskt ríkisfang") {
+      icelandic = totalForCitizenship;
+    }
+  }
+
+  for (const genderCode of genderCodes) {
+    let totalForGender = 0;
+
+    for (const ageCode of ageCodes) {
+      totalForGender += valueAt(allCitizenshipCode, ageCode, genderCode);
+    }
+
+    byGender.push({
+      code: genderCode,
+      label: genderLabels[genderCode] || genderCode,
+      population: totalForGender
+    });
+  }
+
+  return {
+    municipalityCode,
+    municipalityLabel,
+    year: yearLabel,
+    ageGroup,
+    total: totalAll,
+    citizenship: {
+      icelandic,
+      foreign: Math.max(0, totalAll - icelandic)
     },
     gender: {
       men,
@@ -1784,11 +1964,12 @@ export default {
 
     if (url.pathname === "/hagstofa/citizenship-gender") {
       const code = url.searchParams.get("code");
+      const ageGroup = url.searchParams.get("ageGroup") || "all";
       if (!code) {
         return jsonResponse({ error: "Vantar sveitarfélagakóða." }, 400);
       }
       try {
-        const breakdown = await fetchHagstofaCitizenshipGenderBreakdown(code);
+        const breakdown = await fetchHagstofaCitizenshipGenderBreakdown(code, ageGroup);
         return jsonResponse(breakdown);
       } catch (error) {
         return jsonResponse(
