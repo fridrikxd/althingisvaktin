@@ -30,6 +30,7 @@ jobs:
           cp flokkar.html dist/
           cp leidtogar.html dist/
           cp sveitarstjornarkosningar-2026.html dist/
+          cp mannfjoldi-sveitarfelog.html dist/
 
       - name: Ensure Cloudflare Pages project exists
         env:
