@@ -156,13 +156,13 @@
 
     function municipalityUrbanityBreakdown() {
       const total = Number(latestRow()?.population || 0);
-      const aliases = municipalitySettlementAliases(state.selectedLabel).map(stripAccents);
+      const aliases = new Set(municipalitySettlementAliases(state.selectedLabel).map(stripAccents));
       const urbanRows = state.settlementRows.filter((row) => {
         const normalizedLabel = stripAccents(row.label || "");
         if (!normalizedLabel || normalizedLabel === "alls" || normalizedLabel.startsWith("strajlb")) return false;
-        return aliases.some((alias) => normalizedLabel === alias || normalizedLabel.includes(alias) || alias.includes(normalizedLabel));
-      });
-      const urbanPopulation = urbanRows.reduce((sum, row) => sum + Number(row.population || 0), 0);
+        return aliases.has(normalizedLabel);
+      }).sort((a, b) => Number(b.population || 0) - Number(a.population || 0));
+      const urbanPopulation = Math.min(total, urbanRows.reduce((sum, row) => sum + Number(row.population || 0), 0));
       const ruralPopulation = Math.max(0, total - urbanPopulation);
       return { total, urbanRows, urbanPopulation, ruralPopulation };
     }
@@ -261,7 +261,7 @@
               <div class="h-4 rounded-l-full bg-[linear-gradient(90deg,_#8dc1ff,_#1446dc)]" style="width:${Math.max(4, urbanPercent)}%"></div>
             </div>
             <div class="mt-3 flex flex-wrap gap-2">
-              ${(breakdown.urbanRows.length ? breakdown.urbanRows : [{ label: "Enginn skráður byggðakjarni fannst", population: 0 }]).map((row) => `
+              ${(breakdown.urbanRows.length ? breakdown.urbanRows.slice(0, 8) : [{ label: "Enginn skráður byggðakjarni fannst", population: 0 }]).map((row) => `
                 <span class="rounded-full border border-slate-200 bg-[#f7faff] px-3 py-1 text-xs font-semibold text-[#16315f]">${escapeHtml(row.label)}${row.population ? ` · ${escapeHtml(formatNumber(row.population))}` : ""}</span>
               `).join("")}
             </div>
