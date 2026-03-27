@@ -1643,7 +1643,7 @@ async function fetchHagstofaCitizenshipGenderBreakdownLegacy(code, ageGroup = "a
 }
 
 async function fetchHagstofaCitizenshipGenderBreakdown(code, ageGroup = "all") {
-  const ageValues = ageGroup === "18plus" ? rangeValues(18, 109) : ["Alls"];
+  const ageValues = ageGroup === "18plus" ? rangeValues(18, 101) : ["999"];
   const body = {
     query: [
       {
