@@ -1320,6 +1320,179 @@ async function fetchHagstofaSettlementSeries(ageGroup = "all") {
   return rows;
 }
 
+async function fetchHagstofaMunicipalityGenderBreakdown(code, ageGroup = "all") {
+  const ageValues = ageGroup === "18plus" ? rangeValues(18, 109) : ["-1"];
+  const body = {
+    query: [
+      {
+        code: "Sveitarfélag",
+        selection: {
+          filter: "item",
+          values: [code]
+        }
+      },
+      {
+        code: "Aldur",
+        selection: {
+          filter: "item",
+          values: ageValues
+        }
+      },
+      {
+        code: "Ár",
+        selection: {
+          filter: "top",
+          values: ["1"]
+        }
+      },
+      {
+        code: "Kyn",
+        selection: {
+          filter: "item",
+          values: ["1", "2", "3"]
+        }
+      }
+    ],
+    response: {
+      format: "json-stat2"
+    }
+  };
+
+  const response = await fetch(HAGSTOFA_MUNICIPALITY_AGE_TABLE, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "accept": "application/json"
+    },
+    body: JSON.stringify(body)
+  });
+
+  const text = await response.text();
+  if (!response.ok) {
+    throw new Error(`Hagstofa municipality-gender responded ${response.status}: ${text.slice(0, 180)}`);
+  }
+
+  const payload = JSON.parse(text);
+  const values = payload.value || [];
+  const dimension = payload.dimension || {};
+  const genderCategory = dimension["Kyn"]?.category;
+  const municipalityCategory = dimension["Sveitarfélag"]?.category;
+  const yearCategory = dimension["Ár"]?.category;
+  const genderCodes = genderCategory?.index ? Object.keys(genderCategory.index) : [];
+  const genderLabels = genderCategory?.label || {};
+  const municipalityCode = municipalityCategory?.index ? Object.keys(municipalityCategory.index)[0] : code;
+  const municipalityLabel = municipalityCategory?.label?.[municipalityCode] || code;
+  const yearCode = yearCategory?.index ? Object.keys(yearCategory.index)[0] : "";
+  const yearLabel = yearCategory?.label?.[yearCode] || yearCode;
+  const rows = [];
+
+  for (let genderPos = 0; genderPos < genderCodes.length; genderPos += 1) {
+    const genderCode = genderCodes[genderPos];
+    let total = 0;
+    for (let agePos = 0; agePos < ageValues.length; agePos += 1) {
+      const valueIndex = agePos * genderCodes.length + genderPos;
+      total += Number(values[valueIndex] || 0);
+    }
+    rows.push({
+      code: genderCode,
+      label: genderLabels[genderCode] || genderCode,
+      population: total,
+      municipalityCode,
+      municipalityLabel,
+      year: yearLabel,
+      ageGroup
+    });
+  }
+
+  return rows;
+}
+
+async function fetchHagstofaSettlementGenderBreakdown(ageGroup = "all") {
+  const ageValues = ageGroup === "18plus" ? rangeValues(18, 101) : ["Alls"];
+  const genderValues = ["1", "2", "3"];
+  const body = {
+    query: [
+      {
+        code: "Byggðakjarnar",
+        selection: {
+          filter: "all",
+          values: ["*"]
+        }
+      },
+      {
+        code: "Aldur",
+        selection: {
+          filter: "item",
+          values: ageValues
+        }
+      },
+      {
+        code: "Ár",
+        selection: {
+          filter: "top",
+          values: ["1"]
+        }
+      },
+      {
+        code: "Kyn",
+        selection: {
+          filter: "item",
+          values: genderValues
+        }
+      }
+    ],
+    response: {
+      format: "json-stat2"
+    }
+  };
+
+  const response = await fetch(HAGSTOFA_SETTLEMENT_TABLE, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "accept": "application/json"
+    },
+    body: JSON.stringify(body)
+  });
+
+  const text = await response.text();
+  if (!response.ok) {
+    throw new Error(`Hagstofa settlement-gender responded ${response.status}: ${text.slice(0, 180)}`);
+  }
+
+  const payload = JSON.parse(text);
+  const values = payload.value || [];
+  const dimension = payload.dimension || {};
+  const settlementCategory = dimension["Byggðakjarnar"]?.category;
+  const settlementCodes = settlementCategory?.index ? Object.keys(settlementCategory.index) : [];
+  const settlementLabels = settlementCategory?.label || {};
+  const genderCategory = dimension["Kyn"]?.category;
+  const genderCodes = genderCategory?.index ? Object.keys(genderCategory.index) : [];
+  const genderLabels = genderCategory?.label || {};
+  const rows = [];
+
+  for (let settlementPos = 0; settlementPos < settlementCodes.length; settlementPos += 1) {
+    for (let genderPos = 0; genderPos < genderCodes.length; genderPos += 1) {
+      const genderCode = genderCodes[genderPos];
+      let total = 0;
+      for (let agePos = 0; agePos < ageValues.length; agePos += 1) {
+        const valueIndex = settlementPos * ageValues.length * genderCodes.length + agePos * genderCodes.length + genderPos;
+        total += Number(values[valueIndex] || 0);
+      }
+      rows.push({
+        settlementCode: settlementCodes[settlementPos],
+        settlementLabel: settlementLabels[settlementCodes[settlementPos]] || settlementCodes[settlementPos],
+        genderCode,
+        genderLabel: genderLabels[genderCode] || genderCode,
+        population: total,
+        ageGroup
+      });
+    }
+  }
+
+  return rows;
+}
+
 async function fetchHagstofaCitizenshipGenderBreakdown(code) {
   const body = {
     query: [
@@ -1404,10 +1577,12 @@ async function fetchHagstofaCitizenshipGenderBreakdown(code) {
     for (let genderPos = 0; genderPos < genderCodes.length; genderPos += 1) {
       const valueIndex = citizenshipPos * genderCodes.length + genderPos;
       const value = Number(values[valueIndex] || 0);
-      totalForCitizenship += value;
+      const genderLabel = genderLabels[genderCodes[genderPos]] || genderCodes[genderPos];
+      if (genderLabel === "Alls") {
+        totalForCitizenship = value;
+      }
 
       if (citizenshipLabel === "Alls") {
-        const genderLabel = genderLabels[genderCodes[genderPos]] || genderCodes[genderPos];
         if (genderLabel === "Alls") totalAll = value;
         if (genderLabel === "Karlar") men = value;
         if (genderLabel === "Konur") women = value;
@@ -1564,6 +1739,42 @@ export default {
         return jsonResponse(
           {
             error: "Ekki tókst að sækja byggðakjarnagögn frá Hagstofu.",
+            details: String(error?.message || error)
+          },
+          500
+        );
+      }
+    }
+
+    if (url.pathname === "/hagstofa/municipality-gender") {
+      const code = url.searchParams.get("code");
+      const ageGroup = url.searchParams.get("ageGroup") || "all";
+      if (!code) {
+        return jsonResponse({ error: "Vantar sveitarfélagakóða." }, 400);
+      }
+      try {
+        const rows = await fetchHagstofaMunicipalityGenderBreakdown(code, ageGroup);
+        return jsonResponse({ code, ageGroup, rows });
+      } catch (error) {
+        return jsonResponse(
+          {
+            error: "Ekki tókst að sækja kyngögn fyrir sveitarfélag frá Hagstofu.",
+            details: String(error?.message || error)
+          },
+          500
+        );
+      }
+    }
+
+    if (url.pathname === "/hagstofa/settlement-gender") {
+      const ageGroup = url.searchParams.get("ageGroup") || "all";
+      try {
+        const rows = await fetchHagstofaSettlementGenderBreakdown(ageGroup);
+        return jsonResponse({ ageGroup, rows });
+      } catch (error) {
+        return jsonResponse(
+          {
+            error: "Ekki tókst að sækja kyngögn fyrir byggðakjarna frá Hagstofu.",
             details: String(error?.message || error)
           },
           500

@@ -99,6 +99,8 @@
       rows: [],
       demographics: null,
       settlementRows: [],
+      settlementGenderRows: [],
+      municipalityGenderRows: [],
       urbanityRows: [],
       lastUpdated: ""
     };
@@ -166,6 +168,40 @@
       const urbanPopulation = Math.min(total, urbanRows.reduce((sum, row) => sum + Number(row.population || 0), 0));
       const ruralPopulation = Math.max(0, total - urbanPopulation);
       return { total, urbanRows, urbanPopulation, ruralPopulation };
+    }
+
+    function municipalityUrbanityGenderBreakdown() {
+      const aliases = new Set(municipalitySettlementAliases(state.selectedLabel).map(stripAccents));
+      const urbanRows = state.settlementGenderRows.filter((row) => {
+        const normalizedLabel = stripAccents(row.settlementLabel || "");
+        if (!normalizedLabel || normalizedLabel === "alls" || normalizedLabel.startsWith("strajlb")) return false;
+        return aliases.has(normalizedLabel);
+      });
+
+      const municipalityByGender = Object.fromEntries(
+        state.municipalityGenderRows.map((row) => [row.label, Number(row.population || 0)])
+      );
+      const urbanByGender = urbanRows.reduce((acc, row) => {
+        acc[row.genderLabel] = (acc[row.genderLabel] || 0) + Number(row.population || 0);
+        return acc;
+      }, {});
+
+      const menUrban = Math.min(Number(municipalityByGender["Karlar"] || 0), Number(urbanByGender["Karlar"] || 0));
+      const womenUrban = Math.min(Number(municipalityByGender["Konur"] || 0), Number(urbanByGender["Konur"] || 0));
+      const otherUrban = Math.min(Number(municipalityByGender["Kynsegin/annað"] || 0), Number(urbanByGender["Kynsegin/annað"] || 0));
+
+      return {
+        urban: {
+          men: menUrban,
+          women: womenUrban,
+          other: otherUrban
+        },
+        rural: {
+          men: Math.max(0, Number(municipalityByGender["Karlar"] || 0) - menUrban),
+          women: Math.max(0, Number(municipalityByGender["Konur"] || 0) - womenUrban),
+          other: Math.max(0, Number(municipalityByGender["Kynsegin/annað"] || 0) - otherUrban)
+        }
+      };
     }
 
     function renderDemographicsCard() {
@@ -312,6 +348,7 @@
 
     function renderMunicipalityUrbanityCard() {
       const breakdown = municipalityUrbanityBreakdown();
+      const genderBreakdown = municipalityUrbanityGenderBreakdown();
       const total = breakdown.total || 1;
       const urbanPercent = Math.round((breakdown.urbanPopulation / total) * 100);
       const ruralPercent = Math.max(0, 100 - urbanPercent);
@@ -331,11 +368,21 @@
               <div class="text-xs uppercase tracking-[0.18em] text-slate-400">Þéttbýli / byggðakjarnar</div>
               <div class="mt-2 text-3xl font-semibold text-[#081c40]">${escapeHtml(formatNumber(breakdown.urbanPopulation))}</div>
               <div class="mt-1 text-sm text-[#60779a]">${escapeHtml(`${urbanPercent}% af heild`)}</div>
+              <div class="mt-4 space-y-2 text-sm text-[#60779a]">
+                <div>Karlar: <span class="font-semibold text-[#081c40]">${escapeHtml(formatNumber(genderBreakdown.urban.men))}</span></div>
+                <div>Konur: <span class="font-semibold text-[#081c40]">${escapeHtml(formatNumber(genderBreakdown.urban.women))}</span></div>
+                ${genderBreakdown.urban.other ? `<div>Kynsegin/annað: <span class="font-semibold text-[#081c40]">${escapeHtml(formatNumber(genderBreakdown.urban.other))}</span></div>` : ""}
+              </div>
             </div>
             <div class="rounded-[24px] border border-[#d7e3fb] bg-[#f9fbff] p-5">
               <div class="text-xs uppercase tracking-[0.18em] text-slate-400">Dreifbýli / utan byggðakjarna</div>
               <div class="mt-2 text-3xl font-semibold text-[#081c40]">${escapeHtml(formatNumber(breakdown.ruralPopulation))}</div>
               <div class="mt-1 text-sm text-[#60779a]">${escapeHtml(`${ruralPercent}% af heild`)}</div>
+              <div class="mt-4 space-y-2 text-sm text-[#60779a]">
+                <div>Karlar: <span class="font-semibold text-[#081c40]">${escapeHtml(formatNumber(genderBreakdown.rural.men))}</span></div>
+                <div>Konur: <span class="font-semibold text-[#081c40]">${escapeHtml(formatNumber(genderBreakdown.rural.women))}</span></div>
+                ${genderBreakdown.rural.other ? `<div>Kynsegin/annað: <span class="font-semibold text-[#081c40]">${escapeHtml(formatNumber(genderBreakdown.rural.other))}</span></div>` : ""}
+              </div>
             </div>
           </div>
           <div class="mt-5">
@@ -488,6 +535,8 @@
         state.rows = [];
         state.demographics = null;
         state.settlementRows = [];
+        state.settlementGenderRows = [];
+        state.municipalityGenderRows = [];
         state.error = "";
         render();
         if (state.selectedCode) {
@@ -499,6 +548,8 @@
         state.ageGroup = event.target.value;
         state.rows = [];
         state.settlementRows = [];
+        state.settlementGenderRows = [];
+        state.municipalityGenderRows = [];
         state.urbanityRows = [];
         state.error = "";
         render();
@@ -582,16 +633,45 @@
       return response.json();
     }
 
+    async function fetchMunicipalityGenderData() {
+      const response = await fetch(`${API_URL}/hagstofa/municipality-gender?code=${encodeURIComponent(state.selectedCode)}&ageGroup=${encodeURIComponent(state.ageGroup)}`, {
+        method: "GET",
+        cache: "no-store"
+      });
+      if (!response.ok) throw new Error(`Sveitarfélaga-kyngögn svöruðu ${response.status}`);
+      const payload = await response.json();
+      return (payload.rows || []).map((row) => ({
+        label: row.label || "",
+        population: Number(row.population || 0)
+      })).filter((row) => row.label && Number.isFinite(row.population));
+    }
+
+    async function fetchSettlementGenderData() {
+      const response = await fetch(`${API_URL}/hagstofa/settlement-gender?ageGroup=${encodeURIComponent(state.ageGroup)}`, {
+        method: "GET",
+        cache: "no-store"
+      });
+      if (!response.ok) throw new Error(`Byggðakjarna-kyngögn svöruðu ${response.status}`);
+      const payload = await response.json();
+      return (payload.rows || []).map((row) => ({
+        settlementLabel: row.settlementLabel || "",
+        genderLabel: row.genderLabel || "",
+        population: Number(row.population || 0)
+      })).filter((row) => row.settlementLabel && row.genderLabel && Number.isFinite(row.population));
+    }
+
     async function fetchAllData() {
       state.loadingData = true;
       state.error = "";
       render();
       try {
-        const [municipalityRows, urbanityRows, settlementRows, demographics] = await Promise.all([
+        const [municipalityRows, urbanityRows, settlementRows, demographics, municipalityGenderRows, settlementGenderRows] = await Promise.all([
           fetchMunicipalityData(),
           fetchUrbanityData(),
           fetchSettlementData(),
-          fetchDemographicsData()
+          fetchDemographicsData(),
+          fetchMunicipalityGenderData(),
+          fetchSettlementGenderData()
         ]);
         if (!municipalityRows.length) {
           throw new Error("Engar sveitarfélagatölur fundust fyrir valda síu.");
@@ -600,6 +680,8 @@
         state.demographics = demographics;
         state.urbanityRows = urbanityRows;
         state.settlementRows = settlementRows;
+        state.municipalityGenderRows = municipalityGenderRows;
+        state.settlementGenderRows = settlementGenderRows;
       } catch (error) {
         state.error = `Ekki tókst að sækja mannfjöldatölur fyrir ${state.selectedLabel}. ${error?.message || error}`;
       } finally {
